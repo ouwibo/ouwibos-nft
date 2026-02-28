@@ -2,15 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Share2, ShieldCheck, Zap, ExternalLink, RefreshCw, Users, CheckCircle2, ArrowRight } from 'lucide-react';
-import { createThirdwebClient, getContract } from "thirdweb";
-import { base } from "thirdweb/chains";
-import { claimTo } from "thirdweb/extensions/erc1155";
-import { TransactionButton, ConnectButton, useActiveAccount } from "thirdweb/react";
-import { createWallet, inAppWallet } from "thirdweb/wallets";
-import sdk from "@farcaster/frame-sdk";
-
-import { LayoutGrid, ShoppingBag, User, Map, Info, Wallet } from 'lucide-react';
+import { Sparkles, Share2, ShieldCheck, Zap, ExternalLink, RefreshCw, Users, CheckCircle2, ArrowRight, LayoutGrid, ShoppingBag, User, Map, Info, Wallet } from 'lucide-react';
 import { createThirdwebClient, getContract } from "thirdweb";
 import { base } from "thirdweb/chains";
 import { claimTo } from "thirdweb/extensions/erc1155";
