@@ -14,13 +14,13 @@ const APP_URL = process.env.NEXT_PUBLIC_VERCEL_URL
   : "https://ouwibo-nft.vercel.app";
 
 const frameConfig = {
-  version: "next",
+  version: "1",
   imageUrl: `${APP_URL}/ouwibo-nft.png`,
   button: {
     title: "Launch Ouwibo",
     action: {
       type: "launch_frame",
-      name: "Ouwibo NFT",
+      name: "OUWIBO NFT",
       url: APP_URL,
       splashImageUrl: `${APP_URL}/ouwibo-nft.png`,
       splashBackgroundColor: "#000000",
@@ -53,6 +53,9 @@ export const metadata: Metadata = {
   other: {
     "base:app_id": "69a11773dce51e894f97278f",
     "fc:frame": stringifiedFrame,
+    "fc:frame:image": `${APP_URL}/ouwibo-nft.png`,
+    "fc:frame:button:1": "Launch Ouwibo",
+    "fc:frame:button:1:action": "post_redirect",
     "fc:miniapp": stringifiedFrame,
   },
 }
