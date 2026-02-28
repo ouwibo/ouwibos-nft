@@ -60,7 +60,7 @@ export default function OuwiboBaseApp() {
 
   const shareToFeed = () => {
     const text = "I just secured my Ouwibo Genesis Pass! 🚀 Join the mint on Base.";
-    const url = typeof window !== 'undefined' ? window.location.origin : "https://ouwibos-nft.vercel.app";
+    const url = typeof window !== 'undefined' ? window.location.origin : "https://ouwibo-nft.vercel.app";
     window.open(`https://warpcast.com/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURIComponent(url)}`, "_blank");
   };
 

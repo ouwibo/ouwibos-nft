@@ -11,7 +11,7 @@ const inter = Inter({
 
 const APP_URL = process.env.NEXT_PUBLIC_VERCEL_URL 
   ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` 
-  : "https://ouwibos-nft.vercel.app";
+  : "https://ouwibo-nft.vercel.app";
 
 const miniappEmbed = {
   version: "1",
