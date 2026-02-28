@@ -10,9 +10,8 @@
     "iconUrl": "https://ouwibos-nft.vercel.app/ouwibo-nft.png",
     "homeUrl": "https://ouwibos-nft.vercel.app",
     "imageUrl": "https://ouwibos-nft.vercel.app/ouwibo-nft.png",
-    "buttonTitle": "Mint Ouwibo NFT",
+    "buttonTitle": "Launch Ouwibo",
     "splashImageUrl": "https://ouwibos-nft.vercel.app/ouwibo-nft.png",
-    "splashBackgroundColor": "#000000",
-    "webhookUrl": "https://ouwibos-nft.vercel.app/api/webhook"
+    "splashBackgroundColor": "#000000"
   }
 }

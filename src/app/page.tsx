@@ -8,6 +8,7 @@ import { base } from "thirdweb/chains";
 import { claimTo } from "thirdweb/extensions/erc1155";
 import { TransactionButton, ConnectButton, useActiveAccount } from "thirdweb/react";
 import { createWallet, inAppWallet } from "thirdweb/wallets";
+import sdk from "@farcaster/frame-sdk";
 
 // Initialize Thirdweb Client
 const client = createThirdwebClient({
@@ -33,7 +34,11 @@ export default function OuwiboBaseApp() {
   const [txHash, setTxHash] = useState<string | null>(null);
   
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+    // Notify Farcaster that the mini-app is ready to be displayed
+    sdk.actions.ready();
+  }, []);
 
   // Initialize Contract
   const contract = getContract({
