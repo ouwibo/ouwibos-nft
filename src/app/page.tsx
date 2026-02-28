@@ -37,19 +37,18 @@ export default function OuwiboBaseApp() {
   useEffect(() => {
     setMounted(true);
     
-    const initSdk = async () => {
+    const init = async () => {
       try {
-        // Notify Farcaster that the mini-app is ready
+        // Step 1: Initialize the SDK (Mandatory for some versions)
+        // Step 2: Signal that the app is ready to hide the splash screen
         await sdk.actions.ready();
-        console.log("Farcaster SDK Ready called");
-      } catch (e) {
-        console.error("Error calling sdk.actions.ready()", e);
+        console.log("Farcaster SDK: ready() called successfully");
+      } catch (error) {
+        console.error("Farcaster SDK: Failed to signal ready", error);
       }
     };
 
-    // Small delay to ensure everything is rendered
-    const timer = setTimeout(initSdk, 100);
-    return () => clearTimeout(timer);
+    init();
   }, []);
 
   // Initialize Contract
