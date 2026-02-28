@@ -7,11 +7,19 @@
   "frame": {
     "version": "1",
     "name": "Ouwibo NFT",
+    "subtitle": "Premium Genesis Pass on Base",
+    "description": "Ouwibo NFT is a premium digital collectible on the Base network. Mint your Genesis Pass to unlock exclusive benefits, gasless experiences, and future ecosystem rewards.",
+    "tagline": "Mint your legacy on Base Mainnet.",
     "iconUrl": "https://ouwibos-nft.vercel.app/ouwibo-nft.png",
     "homeUrl": "https://ouwibos-nft.vercel.app",
     "imageUrl": "https://ouwibos-nft.vercel.app/ouwibo-nft.png",
     "buttonTitle": "Launch Ouwibo",
     "splashImageUrl": "https://ouwibos-nft.vercel.app/ouwibo-nft.png",
-    "splashBackgroundColor": "#000000"
+    "splashBackgroundColor": "#000000",
+    "primaryCategory": "collectibles",
+    "tags": ["NFT", "Base", "Mint", "Ouwibo", "Farcaster"],
+    "ogTitle": "Ouwibo NFT | Base Mainnet",
+    "ogDescription": "Exclussive Genesis Pass Minting on Base.",
+    "ogImageUrl": "https://ouwibos-nft.vercel.app/ouwibo-nft.png"
   }
 }
