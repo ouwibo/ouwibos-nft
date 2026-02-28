@@ -5,6 +5,7 @@
     "signature": "0gRv+WFuFjofIca9NURTx/VaD5uOCbVGotl1mBliq60IjZsgFypDTGWQh7VkeVCALAqnLT+CeO7bfkSt8TI9wRw="
   },
   "frame": {
+    "appId": "69a11773dce51e894f97278f",
     "version": "1",
     "name": "OUWIBO NFT",
     "subtitle": "Genesis Pass Airdrop Portal",
@@ -29,6 +30,7 @@
     "imageUrl": "https://ouwibo-nft.vercel.app/ouwibo-nft.png",
     "splashImageUrl": "https://ouwibo-nft.vercel.app/ouwibo-nft.png",
     "splashBackgroundColor": "#000000",
+    "webhookUrl": "https://ouwibo-nft.vercel.app/api/webhook",
     "primaryCategory": "art-creativity",
     "tags": ["nft", "base", "airdrop", "ouwibo", "genesis"]
   }
