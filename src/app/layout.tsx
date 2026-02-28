@@ -38,11 +38,11 @@ const miniAppConfig = {
 const stringifiedConfig = JSON.stringify(miniAppConfig);
 
 export const metadata: Metadata = {
-  title: 'OUWIBO NFT Genesis Pass Airdrop Portal',
+  title: 'OUWIBO GENESIS Pass Airdrop Portal',
   description: 'Ouwibo NFT is your premium gateway to Base. Mint your Genesis Pass to unlock gasless experiences and airdrop priority.',
   manifest: '/manifest.json',
   openGraph: {
-    title: 'OUWIBO NFT Genesis Pass Airdrop Portal',
+    title: 'OUWIBO GENESIS Pass Airdrop Portal',
     description: 'Mint your Genesis Pass to unlock exclusive Base ecosystem rewards and airdrop priority access.',
     url: APP_URL,
     siteName: 'OUWIBO NFT',

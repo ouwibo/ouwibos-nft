@@ -182,7 +182,7 @@ function ExploreView({ onNftClick }: any) {
           <span className="text-[6px] font-black text-primary uppercase tracking-widest leading-none">Verified Infrastructure</span>
         </div>
         <h1 className="text-4xl font-black italic tracking-tighter text-white leading-none uppercase text-left">
-          OUWIBO <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary text-left">UTILITY.</span>
+          OUWIBO <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary text-left">GENESIS.</span>
         </h1>
         <p className="text-slate-400 text-[10px] font-medium italic leading-tight max-w-[280px] text-left">
           Portal aset digital resmi Ouwibo di jaringan Base. Minting Utility NFT untuk membuka akses penuh ke protokol.
