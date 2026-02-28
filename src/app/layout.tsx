@@ -31,12 +31,29 @@ const frameConfig = {
 const stringifiedFrame = JSON.stringify(frameConfig);
 
 export const metadata: Metadata = {
-  title: 'Ouwibo NFT | Base Mainnet',
-  description: 'Mint Ouwibo-NFT eksklusif via Farcaster Frame - Base Mainnet',
+  title: 'OUWIBO NFT | Genesis Pass & Airdrop',
+  description: 'Premium Gateway to the Base Ecosystem. Mint your Genesis Pass for exclusive airdrop rewards.',
   manifest: '/manifest.json',
+  openGraph: {
+    title: 'OUWIBO NFT | Genesis Pass & Airdrop',
+    description: 'Mint your Genesis Pass to unlock exclusive Base ecosystem rewards and airdrop priority.',
+    url: APP_URL,
+    siteName: 'OUWIBO NFT',
+    images: [
+      {
+        url: `${APP_URL}/ouwibo-nft.png`,
+        width: 1200,
+        height: 800,
+        alt: 'OUWIBO NFT Preview',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
   other: {
     "base:app_id": "69a11773dce51e894f97278f",
     "fc:frame": stringifiedFrame,
+    "fc:miniapp": stringifiedFrame,
   },
 }
 
