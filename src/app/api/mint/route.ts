@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     const contract = getContract({
       client,
       chain: base,
-      address: "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25",
+      address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!,
     });
 
     // Initialize Backend Wallet if needed for gasless sponsorship
