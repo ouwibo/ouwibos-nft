@@ -15,7 +15,7 @@
     "webhookUrl": "https://ouwibo-nft.vercel.app/api/webhook",
     "subtitle": "Premium Genesis Pass & Airdrop Portal",
     "description": "Ouwibo NFT is your premium gateway to the Base ecosystem. Mint your Genesis Pass to unlock gasless experiences, exclusive rewards, and priority access to the upcoming Ouwibo Airdrop ecosystem.",
-    "primaryCategory": "utility",
+    "primaryCategory": "art-creativity",
     "tags": ["nft", "base", "airdrop", "ouwibo", "genesis"]
   },
   "miniapp": {
@@ -26,6 +26,7 @@
     "imageUrl": "https://ouwibo-nft.vercel.app/ouwibo-nft.png",
     "splashImageUrl": "https://ouwibo-nft.vercel.app/ouwibo-nft.png",
     "splashBackgroundColor": "#000000",
+    "primaryCategory": "art-creativity",
     "tags": ["nft", "base", "airdrop", "ouwibo", "genesis"]
   }
 }
