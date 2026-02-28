@@ -2,24 +2,19 @@
   "accountAssociation": {
     "header": "eyJmaWQiOjI3ODkwMTUsInR5cGUiOiJhdXRoIiwia2V5IjoiMHg2NDZhZTFlODgxNzIwNTc0RkM3RGEzMEVlOTJhYWU4QzIwQTFiODFiIn0",
     "payload": "eyJkb21haW4iOiJvdXdpYm8tbmZ0LnZlcmNlbC5hcHAifQ",
-    "signature": "0gRv+WFuFjofIca9NURTx/VaD5uOCbVGotl1mBliq60IjZsgFypDTGWQh7VkeVCALAqnLT+CeO7bfkSt8TI9wRw="
+    "signature": "qIBAIxmHumW6cX7xbSyqKY/yqLyufcB6lJD1WtJpXoUrnexLnn88clIO1xCm0dAwtqJNxc4DzYF5PQSU+70ASBw="
   },
   "frame": {
     "version": "1",
-    "name": "Ouwibo NFT",
-    "subtitle": "Premium Genesis Pass on Base",
-    "description": "Ouwibo NFT is a premium digital collectible on the Base network. Mint your Genesis Pass to unlock exclusive benefits, gasless experiences, and future ecosystem rewards.",
-    "tagline": "Mint your legacy on Base Mainnet.",
+    "name": "OUWIBO NFT",
     "iconUrl": "https://ouwibos-nft.vercel.app/ouwibo-nft.png",
     "homeUrl": "https://ouwibos-nft.vercel.app",
     "imageUrl": "https://ouwibos-nft.vercel.app/ouwibo-nft.png",
-    "buttonTitle": "Launch Ouwibo",
     "splashImageUrl": "https://ouwibos-nft.vercel.app/ouwibo-nft.png",
     "splashBackgroundColor": "#000000",
-    "primaryCategory": "collectibles",
-    "tags": ["NFT", "Base", "Mint", "Ouwibo", "Farcaster"],
-    "ogTitle": "Ouwibo NFT | Base Mainnet",
-    "ogDescription": "Exclussive Genesis Pass Minting on Base.",
-    "ogImageUrl": "https://ouwibos-nft.vercel.app/ouwibo-nft.png"
+    "webhookUrl": "https://ouwibos-nft.vercel.app/api/webhook",
+    "subtitle": "Premium Genesis Pass on Base",
+    "description": "Ouwibo NFT is a premium digital collectible on the Base network. Mint your Genesis Pass to unlock exclusive benefits, gasless experiences, and future ecosystem rewards",
+    "primaryCategory": "utility"
   }
 }
