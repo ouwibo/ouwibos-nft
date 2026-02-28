@@ -91,7 +91,11 @@ export default function OuwiboBaseApp() {
 
   if (!mounted) return (
     <div className="min-h-screen bg-[#020617] flex items-center justify-center">
-      <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+      <div className="relative flex flex-col items-center gap-4">
+        <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+        <div className="absolute inset-0 bg-primary blur-3xl opacity-20 animate-pulse" />
+        <p className="text-[8px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Initialising Protocol</p>
+      </div>
     </div>
   );
 
