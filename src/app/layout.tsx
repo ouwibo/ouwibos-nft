@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
-import { Providers } from '@/components/Providers'
 import './globals.css'
+import { RootClientLayout } from '@/components/RootClientLayout'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -27,7 +27,7 @@ const miniAppConfig = {
     title: "Launch Ouwibo",
     action: {
       type: "launch_frame",
-      name: "OUWIBO NFT",
+      name: "OUWIBO GENESIS",
       url: APP_URL,
       splashImageUrl: `${APP_URL}/ouwibo-nft.png`,
       splashBackgroundColor: "#000000",
@@ -45,13 +45,13 @@ export const metadata: Metadata = {
     title: 'OUWIBO GENESIS Pass Airdrop Portal',
     description: 'Mint your Genesis Pass to unlock exclusive Base ecosystem rewards and airdrop priority access.',
     url: APP_URL,
-    siteName: 'OUWIBO NFT',
+    siteName: 'OUWIBO GENESIS',
     images: [
       {
         url: `${APP_URL}/ouwibo-nft.png`,
         width: 1200,
         height: 800,
-        alt: 'OUWIBO NFT Preview',
+        alt: 'OUWIBO GENESIS Preview',
       },
     ],
     locale: 'en_US',
@@ -73,9 +73,9 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${inter.variable}`}>
       <body className="antialiased font-sans bg-black text-white">
-        <Providers>
+        <RootClientLayout>
           {children}
-        </Providers>
+        </RootClientLayout>
       </body>
     </html>
   )

@@ -11,24 +11,15 @@ import {
 import { createThirdwebClient, getContract } from "thirdweb";
 import { base } from "thirdweb/chains";
 import { claimTo } from "thirdweb/extensions/erc1155";
-import { TransactionButton, ConnectButton, useActiveAccount, useReadContract } from "thirdweb/react";
+import { TransactionButton, useActiveAccount, useReadContract } from "thirdweb/react";
 import { createWallet, inAppWallet } from "thirdweb/wallets";
 import sdk from "@farcaster/frame-sdk";
+import { WalletConnector } from "@/components/WalletConnector";
 
 // Initialize Thirdweb Client
 const client = createThirdwebClient({
   clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID || "bdaebf7f32c0b8df548c6b9c5f800dbf",
 });
-
-const wallets = [
-  createWallet("com.coinbase.wallet"),
-  createWallet("io.metamask"),
-  inAppWallet({
-    auth: {
-      options: ["google", "discord", "farcaster", "email", "passkey"],
-    },
-  }),
-];
 
 // Simplified NFT Collection: Primary Asset Only
 const NFT_COLLECTION = [
@@ -113,23 +104,14 @@ export default function OuwiboBaseApp() {
           <div className="w-7 h-7 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center shadow-lg">
             <Zap className="text-white fill-current" size={14} />
           </div>
-          <div className="text-left text-left">
+          <div className="text-left">
             <h1 className="font-black text-xs tracking-tighter text-white leading-none">OUWIBO</h1>
             <p className="text-[6px] font-black text-secondary uppercase tracking-widest mt-0.5 leading-none">Base Network</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 scale-75 origin-right">
-          <ConnectButton 
-            client={client} 
-            theme="dark" 
-            wallets={wallets} 
-            chain={base} 
-            connectButton={{ 
-              className: "!bg-white !text-black !font-black !px-3 !py-1.5 !rounded-lg !text-[8px] !uppercase !border-none",
-              label: "Connect"
-            }} 
-          />
+          <WalletConnector />
         </div>
       </header>
 
@@ -177,7 +159,7 @@ function ExploreView({ onNftClick }: any) {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 text-left">
       <section className="space-y-2 pt-1 border-b border-white/5 pb-6 text-left">
-        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 border border-primary/20 rounded-md">
+        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 border border-primary/20 rounded-md text-left">
           <ShieldCheck size={8} className="text-primary" />
           <span className="text-[6px] font-black text-primary uppercase tracking-widest leading-none">Verified Infrastructure</span>
         </div>
@@ -189,13 +171,13 @@ function ExploreView({ onNftClick }: any) {
         </p>
       </section>
 
-      <section className="space-y-4">
+      <section className="space-y-4 text-left">
         <div className="flex items-center justify-between text-left">
           <h2 className="text-[10px] font-black italic uppercase tracking-[0.2em] text-slate-500 text-left leading-none">Official Collection</h2>
           <span className="w-12 h-[1px] bg-white/5" />
         </div>
         
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 text-left">
           {NFT_COLLECTION.map((nft) => (
             <motion.div 
               key={nft.id.toString()}
@@ -243,7 +225,7 @@ function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash,
         <Image src={nft.image} alt="NFT" fill className="object-cover" priority />
         <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-60" />
         <div className="absolute bottom-3 left-3 right-3 text-left">
-          <p className="text-primary text-[8px] font-black uppercase tracking-widest mb-0.5 leading-none">Utility Asset</p>
+          <p className="text-primary text-[6px] font-black uppercase tracking-widest mb-0.5 leading-none">Utility Asset</p>
           <h2 className="text-lg font-black italic uppercase text-white leading-none truncate">{nft.name}</h2>
         </div>
       </div>
@@ -265,8 +247,8 @@ function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash,
             <p className="text-sm font-black italic text-base-emerald uppercase leading-none text-left">Free Gasless</p>
           </div>
           <div className="text-right text-right text-right">
-            <p className="text-[6px] font-black text-slate-500 uppercase tracking-widest mb-0.5 leading-none text-right text-right">Supply Count</p>
-            <p className="text-sm font-black italic text-white tracking-tighter leading-none font-mono text-right text-right">
+            <p className="text-[6px] font-black text-slate-500 uppercase tracking-widest mb-0.5 leading-none text-right text-right text-right">Supply Count</p>
+            <p className="text-sm font-black italic text-white tracking-tighter leading-none font-mono text-right text-right text-right text-right">
               {loadingSupply ? '..' : (totalSupply?.toString() || '0')} / {nft.supply}
             </p>
           </div>
@@ -284,15 +266,16 @@ function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash,
                 INITIALIZE MINT (#{nft.id.toString()})
               </TransactionButton>
             ) : (
-              <div className="p-4 border border-dashed border-white/10 rounded-xl text-center space-y-2">
-                <Wallet className="mx-auto text-slate-600" size={18} />
+              <div className="p-6 border border-dashed border-white/10 rounded-xl text-center space-y-4 flex flex-col items-center">
+                <Wallet className="text-slate-600" size={24} />
                 <p className="text-[7px] font-black text-slate-500 uppercase tracking-widest italic leading-none text-center">Connect to the secure network</p>
+                <WalletConnector />
               </div>
             )
           ) : (
             <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="space-y-2.5">
               <div className="bg-base-emerald/10 border border-base-emerald/20 p-3 rounded-xl flex items-center gap-3 text-left">
-                <div className="w-8 h-8 bg-base-emerald rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-base-emerald rounded-lg flex items-center justify-center shadow-lg text-left">
                   <CheckCircle2 size={18} className="text-black" />
                 </div>
                 <div className="text-left text-left text-left">
@@ -316,8 +299,8 @@ function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash,
           { l: 'Access', v: 'Full' },
         ].map(item => (
           <div key={item.l} className="bg-white/5 border border-white/5 p-2 rounded-lg flex flex-col items-center">
-            <p className="text-[5px] font-black text-slate-500 uppercase leading-none mb-0.5">{item.l}</p>
-            <p className="text-[7px] font-black text-white uppercase leading-none italic">{item.v}</p>
+            <p className="text-[5px] font-black text-slate-500 uppercase leading-none mb-0.5 text-center">{item.l}</p>
+            <p className="text-[7px] font-black text-white uppercase leading-none italic text-center">{item.v}</p>
           </div>
         ))}
       </div>
@@ -361,20 +344,20 @@ function ProfileView({ account, contract }: any) {
               <p className="text-lg font-black italic text-white leading-none mt-1 text-left">Genesis Pass</p>
             </div>
           </div>
-          <p className="text-2xl font-black italic text-white leading-none">{isLoading ? '...' : (balance?.toString() || '0')}</p>
+          <p className="text-2xl font-black italic text-white leading-none text-right">{isLoading ? '...' : (balance?.toString() || '0')}</p>
         </div>
 
-        <div className="bg-gradient-to-b from-white/5 to-transparent rounded-2xl border border-white/5 p-5 space-y-4 text-left">
+        <div className="bg-gradient-to-b from-white/5 to-transparent rounded-2xl border border-white/5 p-5 space-y-4 text-left text-left">
           <h4 className="font-black text-white text-[8px] uppercase tracking-[0.3em] text-center border-b border-white/10 pb-3 italic leading-none text-center">Vault Status</h4>
-          <div className="space-y-3 text-left">
+          <div className="space-y-3 text-left text-left">
             {[
               { l: 'Network', v: 'Base Mainnet', c: 'text-base-emerald' },
               { l: 'Protocol', v: 'v2.0 Active', c: 'text-secondary' },
               { l: 'Access', v: 'Verified', c: 'text-white' },
             ].map(s => (
-              <div key={s.l} className="flex justify-between items-center text-left">
+              <div key={s.l} className="flex justify-between items-center text-left text-left">
                 <span className="text-[8px] font-bold uppercase text-slate-500 tracking-widest text-left">{s.l}</span>
-                <span className={`text-[8px] font-black uppercase ${s.c} leading-none text-right`}>{s.v}</span>
+                <span className={`text-[8px] font-black uppercase ${s.c} leading-none text-right text-right`}>{s.v}</span>
               </div>
             ))}
           </div>
@@ -386,25 +369,25 @@ function ProfileView({ account, contract }: any) {
 
 function RoadmapView() {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8 pt-4 text-center">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8 pt-4 text-center text-center">
       <div className="space-y-2 text-center text-center">
-        <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white text-center leading-none">THE BLUE MAP.</h3>
-        <p className="text-slate-400 text-[10px] font-medium italic leading-relaxed px-4 text-center">
+        <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white text-center leading-none text-center text-center">BLUE MAP.</h3>
+        <p className="text-slate-400 text-[10px] font-medium italic leading-relaxed px-4 text-center text-center text-center">
           Evolusi strategis infrastruktur ekosistem Ouwibo di Base.
         </p>
       </div>
 
-      <div className="space-y-4 px-4 text-left">
+      <div className="space-y-4 px-4 text-left text-left">
         {[
           { p: '01', t: 'Genesis Deployment', d: 'Global synchronization of 6,969 limited passes.' },
           { p: '02', t: 'Airdrop Snapshot', d: 'Comprehensive verification for $SHELL distribution.' },
           { p: '03', t: 'Social Governance', d: 'Transition to decentralized community control.' },
         ].map((step, i) => (
-          <div key={i} className="relative bg-[#0f172a]/40 backdrop-blur-2xl border border-white/5 p-5 rounded-2xl flex items-center gap-5 text-left">
-            <div className="text-2xl font-black italic text-white/5 select-none leading-none">{step.p}</div>
-            <div className="space-y-1 text-left text-left">
-              <h4 className="text-sm font-black italic uppercase text-primary leading-none text-left">{step.t}</h4>
-              <p className="text-slate-400 text-[9px] italic leading-tight text-left">{step.d}</p>
+          <div key={i} className="relative bg-[#0f172a]/40 backdrop-blur-2xl border border-white/5 p-5 rounded-2xl flex items-center gap-5 text-left text-left">
+            <div className="text-2xl font-black italic text-white/5 select-none leading-none text-left">{step.p}</div>
+            <div className="space-y-1 text-left text-left text-left">
+              <h4 className="text-sm font-black italic uppercase text-primary leading-none text-left text-left">{step.t}</h4>
+              <p className="text-slate-400 text-[9px] italic leading-tight text-left text-left">{step.d}</p>
             </div>
           </div>
         ))}
