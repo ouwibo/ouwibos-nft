@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from 'next/image';
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Share2, ShieldCheck, Zap, ExternalLink, RefreshCw, Users, CheckCircle2, ArrowRight, LayoutGrid, ShoppingBag, User, Map, Info, Wallet, Loader2, AlertCircle } from 'lucide-react';
+import { LayoutGrid, ShoppingBag, User, Map, Info, Wallet, Loader2, AlertCircle, ShieldCheck, Zap, CheckCircle2, RefreshCw } from 'lucide-react';
 import { createThirdwebClient, getContract } from "thirdweb";
 import { base } from "thirdweb/chains";
 import { claimTo } from "thirdweb/extensions/erc1155";
@@ -34,7 +34,6 @@ export default function OuwiboBaseApp() {
   
   const [activeTab, setActiveTab] = useState<Tab>('mint');
   const [minted, setMinted] = useState(false);
-  const [mintCount, setMintCount] = useState(1240);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   
@@ -57,6 +56,20 @@ export default function OuwiboBaseApp() {
     address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25",
   });
 
+  // Real-time Supply Fetching from Contract
+  const { data: totalSupply, isLoading: loadingSupply } = useReadContract({
+    contract,
+    method: "function totalSupply(uint256 id) view returns (uint256)",
+    params: [0n],
+  });
+
+  const shareToWarpcast = () => {
+    const text = "I just secured my OUWIBO Genesis Pass on Base! 🚀 Join the wave at @ouwibo";
+    const url = "https://ouwibo-nft.vercel.app";
+    const castUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURIComponent(url)}`;
+    window.open(castUrl, "_blank");
+  };
+
   if (!mounted) return (
     <div className="min-h-screen bg-[#051923] flex items-center justify-center">
       <Loader2 className="text-opensea-blue animate-spin" size={40} />
@@ -64,7 +77,7 @@ export default function OuwiboBaseApp() {
   );
 
   return (
-    <main className="min-h-screen bg-[#051923] text-white font-sans pb-28 relative overflow-hidden">
+    <main className="min-h-screen bg-[#051923] text-white font-sans pb-28 relative overflow-hidden selection:bg-opensea-blue/30">
       {/* Bikini Bottom Background Layer */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute inset-0 bg-gradient-to-b from-[#0077be] via-[#005f8d] to-[#002b4e]" />
@@ -90,7 +103,7 @@ export default function OuwiboBaseApp() {
              <path d="M50 0 C60 20 100 20 100 50 C100 80 60 80 50 100 C40 80 0 80 0 50 C0 20 40 20 50 0" />
            </svg>
         </div>
-        <div className="absolute top-[60%] right-[-10%] w-80 h-80 text-bikini-yellow/5 animate-flower opacity-30">
+        <div className="absolute top-[60%] right-[-10%] w-80 h-80 text-bikini-yellow/5 animate-flower opacity-30" style={{ animationDirection: 'reverse' }}>
            <svg viewBox="0 0 100 100" fill="currentColor">
              <path d="M50 0 C60 20 100 20 100 50 C100 80 60 80 50 100 C40 80 0 80 0 50 C0 20 40 20 50 0" />
            </svg>
@@ -99,13 +112,13 @@ export default function OuwiboBaseApp() {
 
       {/* Modern Header */}
       <header className="sticky top-0 z-50 px-4 sm:px-10 py-5 backdrop-blur-2xl border-b border-white/5 bg-black/40 flex items-center justify-between">
-        <div className="flex items-center gap-4 group cursor-pointer">
-          <div className="w-11 h-11 bg-gradient-to-tr from-opensea-blue to-cyan-400 rounded-2xl flex items-center justify-center shadow-lg transform transition-transform group-hover:rotate-12">
+        <div className="flex items-center gap-4 group cursor-pointer" onClick={() => setActiveTab('mint')}>
+          <div className="w-11 h-11 bg-gradient-to-tr from-opensea-blue to-cyan-400 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(32,129,226,0.3)] transform transition-transform group-hover:rotate-12">
             <ShoppingBag className="text-white" size={24} />
           </div>
-          <div className="hidden sm:block">
-            <h1 className="font-black tracking-tight text-2xl">OUWIBO SEA</h1>
-            <p className="text-[9px] font-black text-opensea-blue uppercase tracking-[0.2em] mt-1">Base Official Portal</p>
+          <div className="hidden sm:block text-left">
+            <h1 className="font-black tracking-tight text-2xl bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">OUWIBO SEA</h1>
+            <p className="text-[9px] font-black text-opensea-blue uppercase tracking-[0.2em] leading-none mt-1">Base Official Portal</p>
           </div>
         </div>
 
@@ -133,7 +146,7 @@ export default function OuwiboBaseApp() {
         )}
 
         <AnimatePresence mode="wait">
-          {activeTab === 'mint' && <MintView key="mint" contract={contract} isConnected={isConnected} minted={minted} setMinted={setMinted} setTxHash={setTxHash} txHash={txHash} mintCount={mintCount} setMintCount={setMintCount} account={account} setError={setError} />}
+          {activeTab === 'mint' && <MintView key="mint" contract={contract} isConnected={isConnected} minted={minted} setMinted={setMinted} setTxHash={setTxHash} txHash={txHash} totalSupply={totalSupply} loadingSupply={loadingSupply} account={account} setError={setError} shareToWarpcast={shareToWarpcast} />}
           {activeTab === 'market' && <MarketView key="market" />}
           {activeTab === 'profile' && <ProfileView key="profile" account={account} contract={contract} />}
           {activeTab === 'roadmap' && <RoadmapView key="roadmap" />}
@@ -141,7 +154,7 @@ export default function OuwiboBaseApp() {
       </div>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-[#04111D]/80 backdrop-blur-3xl border border-white/10 p-2 rounded-[32px] flex items-center gap-2 shadow-2xl">
+      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-[#04111D]/80 backdrop-blur-3xl border border-white/10 p-2 rounded-[32px] flex items-center gap-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
         {[
           { id: 'mint', icon: LayoutGrid, label: 'Explore' },
           { id: 'market', icon: ShoppingBag, label: 'Secondary' },
@@ -151,7 +164,7 @@ export default function OuwiboBaseApp() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as Tab)}
-            className={`flex items-center gap-2 px-6 py-3 rounded-[24px] transition-all duration-500 group ${activeTab === tab.id ? 'bg-opensea-blue text-white shadow-lg' : 'text-white/40 hover:text-white/70 hover:bg-white/5'}`}
+            className={`flex items-center gap-2 px-6 py-3 rounded-[24px] transition-all duration-500 group ${activeTab === tab.id ? 'bg-opensea-blue text-white shadow-lg shadow-opensea-blue/20' : 'text-white/40 hover:text-white/70 hover:bg-white/5'}`}
           >
             <tab.icon size={20} className={activeTab === tab.id ? 'animate-pulse' : ''} />
             <span className={`text-xs font-black uppercase tracking-widest overflow-hidden transition-all duration-500 ${activeTab === tab.id ? 'max-w-[100px] opacity-100 ml-1' : 'max-w-0 opacity-0'}`}>{tab.label}</span>
@@ -162,27 +175,39 @@ export default function OuwiboBaseApp() {
   );
 }
 
-// --- Optimized Mint View ---
+// --- Specialized Views ---
 
-function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash, mintCount, setMintCount, account, setError }: any) {
+function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash, totalSupply, loadingSupply, account, setError, shareToWarpcast }: any) {
   return (
-    <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="grid lg:grid-cols-12 gap-12 items-center">
+    <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="grid lg:grid-cols-12 gap-12 items-start pb-10">
       
       {/* Visual Side */}
-      <div className="lg:col-span-5 group">
+      <div className="lg:col-span-5 group sticky top-32">
         <div className="relative aspect-[4/5] rounded-[48px] overflow-hidden border-2 border-white/10 bg-black shadow-2xl transition-all duration-700 group-hover:border-opensea-blue/50 group-hover:shadow-opensea-blue/10">
-          <Image 
-            src="/ouwibo-nft.png" 
-            alt="Ouwibo Genesis NFT" 
-            fill 
-            className="object-cover transition-transform duration-[2s] group-hover:scale-110"
-            priority
-          />
+          <Image src="/ouwibo-nft.png" alt="NFT" fill className="object-cover transition-transform duration-[2s] group-hover:scale-110" priority />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
+          <div className="absolute top-6 left-6 px-3 py-1.5 bg-black/60 backdrop-blur-xl border border-white/10 rounded-xl flex items-center gap-2">
+             <div className="w-2 h-2 bg-base-emerald rounded-full animate-ping" />
+             <span className="text-[10px] font-black uppercase tracking-widest italic">Live</span>
+          </div>
           <div className="absolute bottom-10 left-10 right-10">
             <p className="text-opensea-blue text-xs font-black uppercase tracking-[0.4em] mb-2 drop-shadow-md">Tier: Genesis</p>
             <h2 className="text-4xl font-black italic tracking-tighter uppercase leading-none drop-shadow-2xl">Ouwibo Pass #0</h2>
           </div>
+        </div>
+
+        <div className="mt-6 grid grid-cols-2 gap-3">
+           {[
+             { trait: 'Access', val: 'Genesis' },
+             { trait: 'Network', val: 'Base' },
+             { trait: 'Standard', val: 'ERC-1155' },
+             { trait: 'Utility', val: 'Airdrop' },
+           ].map(p => (
+             <div key={p.trait} className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center group hover:border-opensea-blue transition-colors">
+                <p className="text-[8px] font-black text-opensea-blue uppercase tracking-widest mb-1">{p.trait}</p>
+                <p className="text-sm font-black italic text-white/80 uppercase">{p.val}</p>
+             </div>
+           ))}
         </div>
       </div>
 
@@ -193,25 +218,33 @@ function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash,
               <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Base Mainnet</span>
               <ShieldCheck size={12} className="text-opensea-blue" />
            </div>
-           <h1 className="text-6xl font-black italic tracking-tighter uppercase leading-[0.9] bg-gradient-to-br from-white via-white to-white/20 bg-clip-text text-transparent">
-             Secure Your <br/>Legacy Pass.
-           </h1>
-           <p className="text-lg text-white/50 leading-relaxed italic max-w-xl font-medium">
-             Gerbang eksklusif menuju ekosistem Ouwibo di jaringan Base. Dapatkan akses prioritas airdrop, fitur premium, dan koleksi langka.
-           </p>
+           <h1 className="text-6xl font-black italic tracking-tighter uppercase leading-[0.9] bg-gradient-to-br from-white via-white to-white/20 bg-clip-text text-transparent">Secure Your <br/>Legacy Pass.</h1>
+           <p className="text-lg text-white/50 leading-relaxed italic max-w-xl font-medium">Gerbang eksklusif menuju ekosistem Ouwibo di jaringan Base. Dapatkan akses prioritas airdrop, fitur premium, dan koleksi langka.</p>
         </div>
 
-        {/* Action Card */}
+        <div className="grid grid-cols-2 gap-4">
+           <div className="bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-[32px] group hover:bg-white/10 transition-all">
+              <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">Minting Fee</p>
+              <p className="text-2xl font-black italic text-base-emerald uppercase">Free Gasless</p>
+           </div>
+           <div className="bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-[32px] group hover:bg-white/10 transition-all">
+              <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">Total Supply</p>
+              <p className="text-2xl font-black italic text-base-amber">
+                {loadingSupply ? '...' : (totalSupply?.toString() || '0')} <span className="text-sm text-white/20">/ 6,969</span>
+              </p>
+           </div>
+        </div>
+
         <div className="p-1 bg-gradient-to-r from-opensea-blue/20 to-transparent rounded-[40px]">
            <div className="bg-[#0a0a0a]/60 backdrop-blur-3xl p-8 rounded-[39px] border border-white/5 space-y-6">
-              <div className="flex justify-between items-end border-b border-white/5 pb-6">
+              <div className="flex justify-between items-center border-b border-white/5 pb-6">
                  <div>
-                    <p className="text-[10px] font-black text-white/30 uppercase mb-1 tracking-widest">Minting Fee</p>
-                    <p className="text-2xl font-black italic text-base-emerald uppercase">Free Gasless</p>
+                    <p className="text-[10px] font-black text-white/30 uppercase mb-1 tracking-widest italic">Current Status</p>
+                    <p className="text-sm font-black italic text-base-emerald uppercase tracking-tight">Public Phase Active</p>
                  </div>
                  <div className="text-right">
-                    <p className="text-[10px] font-black text-white/30 uppercase mb-1 tracking-widest">Allowance</p>
-                    <p className="text-2xl font-black italic text-base-amber">1 / Wallet</p>
+                    <p className="text-[10px] font-black text-white/30 uppercase mb-1 tracking-widest italic">Allowance</p>
+                    <p className="text-xl font-black italic text-base-amber">1 / Wallet</p>
                  </div>
               </div>
 
@@ -219,7 +252,7 @@ function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash,
                 isConnected ? (
                   <TransactionButton
                     transaction={() => claimTo({ contract, to: account!.address, tokenId: 0n, quantity: 1n })}
-                    onTransactionConfirmed={( receipt ) => { setMinted(true); setTxHash(receipt.transactionHash); setMintCount((p: any) => p + 1); }}
+                    onTransactionConfirmed={( receipt ) => { setMinted(true); setTxHash(receipt.transactionHash); }}
                     onError={(err) => setError(err.message)}
                     className="!w-full !bg-opensea-blue hover:!bg-opensea-dark !text-white !font-black !py-8 !rounded-3xl !text-xl !uppercase !shadow-2xl !shadow-opensea-blue/20 !border-none transition-all active:scale-95"
                   >
@@ -242,7 +275,7 @@ function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash,
                          <a href={`https://basescan.org/tx/${txHash}`} target="_blank" className="text-[10px] text-white/40 hover:text-opensea-blue transition-colors underline uppercase font-bold tracking-widest">Verify Transaction</a>
                       </div>
                    </div>
-                   <button onClick={() => window.open('https://warpcast.com', '_blank')} className="w-full bg-white text-black font-black py-5 rounded-3xl text-sm uppercase tracking-[0.2em] hover:bg-bikini-yellow transition-all shadow-xl">
+                   <button onClick={shareToWarpcast} className="w-full bg-white text-black font-black py-5 rounded-3xl text-sm uppercase tracking-[0.2em] hover:bg-bikini-yellow transition-all shadow-xl">
                       SHARE TO FEED
                    </button>
                 </div>
@@ -286,13 +319,13 @@ function ProfileView({ account, contract }: any) {
             </div>
          </div>
       </div>
-      <div className="pt-6 px-12">
+      <div className="pt-6 px-12 text-left">
          <h2 className="text-4xl font-black italic uppercase tracking-tighter">
             {account ? `${account.address.slice(0,6)}...${account.address.slice(-4)}` : 'Unnamed Voyager'}
          </h2>
          <p className="text-xs font-bold text-opensea-blue uppercase tracking-[0.3em] mt-2 italic">Active Collector</p>
          <div className="mt-8 p-6 bg-white/5 rounded-3xl border border-white/10 flex justify-between items-center">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 text-left">
                <Zap className="text-bikini-yellow" />
                <span className="font-bold italic uppercase">Genesis Pass Owned</span>
             </div>
