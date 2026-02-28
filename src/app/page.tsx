@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from "react";
+import Image from 'next/image';
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Share2, ShieldCheck, Zap, ExternalLink, RefreshCw, Users, CheckCircle2, ArrowRight, LayoutGrid, ShoppingBag, User, Map, Info, Wallet } from 'lucide-react';
+import { Sparkles, Share2, ShieldCheck, Zap, ExternalLink, RefreshCw, Users, CheckCircle2, ArrowRight, LayoutGrid, ShoppingBag, User, Map, Info, Wallet, Loader2, AlertCircle } from 'lucide-react';
 import { createThirdwebClient, getContract } from "thirdweb";
 import { base } from "thirdweb/chains";
 import { claimTo } from "thirdweb/extensions/erc1155";
@@ -35,6 +36,7 @@ export default function OuwiboBaseApp() {
   const [minted, setMinted] = useState(false);
   const [mintCount, setMintCount] = useState(1240);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -55,101 +57,104 @@ export default function OuwiboBaseApp() {
     address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25",
   });
 
-  if (!mounted) return null;
+  if (!mounted) return (
+    <div className="min-h-screen bg-[#051923] flex items-center justify-center">
+      <Loader2 className="text-opensea-blue animate-spin" size={40} />
+    </div>
+  );
 
   return (
-    <main className="min-h-screen bg-[#051923] text-white font-sans pb-24 relative overflow-hidden">
+    <main className="min-h-screen bg-[#051923] text-white font-sans pb-28 relative overflow-hidden">
       {/* Bikini Bottom Background Layer */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        {/* Sea Gradient */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0077be] via-[#005f8d] to-[#002b4e]" />
         
         {/* Animated Bubbles */}
-        {[...Array(12)].map((_, i) => (
+        {[...Array(15)].map((_, i) => (
           <div 
             key={i}
-            className="absolute rounded-full bg-white/20 blur-[1px] animate-bubble"
+            className="absolute rounded-full bg-white/10 blur-[1px] animate-bubble"
             style={{
-              left: `${Math.random() * 100}%`,
-              width: `${Math.random() * 20 + 5}px`,
-              height: `${Math.random() * 20 + 5}px`,
-              animationDelay: `${Math.random() * 10}s`,
-              animationDuration: `${Math.random() * 5 + 5}s`
+              left: `${(i * 7) % 100}%`,
+              width: `${(i % 3 + 1) * 8}px`,
+              height: `${(i % 3 + 1) * 8}px`,
+              animationDelay: `${i * 0.8}s`,
+              animationDuration: `${6 + (i % 4)}s`
             }}
           />
         ))}
 
-        {/* Bikini Bottom Flower Clouds (Stylized) */}
-        <div className="absolute top-10 left-10 w-32 h-32 text-bikini-pink/20 animate-flower opacity-30">
+        {/* Flower Clouds */}
+        <div className="absolute top-[-5%] left-[-5%] w-64 h-64 text-bikini-pink/10 animate-flower opacity-40 rotate-12">
            <svg viewBox="0 0 100 100" fill="currentColor">
              <path d="M50 0 C60 20 100 20 100 50 C100 80 60 80 50 100 C40 80 0 80 0 50 C0 20 40 20 50 0" />
            </svg>
         </div>
-        <div className="absolute top-40 right-20 w-48 h-48 text-bikini-yellow/10 animate-flower opacity-20" style={{ animationDelay: '2s' }}>
+        <div className="absolute top-[60%] right-[-10%] w-80 h-80 text-bikini-yellow/5 animate-flower opacity-30">
            <svg viewBox="0 0 100 100" fill="currentColor">
              <path d="M50 0 C60 20 100 20 100 50 C100 80 60 80 50 100 C40 80 0 80 0 50 C0 20 40 20 50 0" />
            </svg>
         </div>
-
-        {/* Sand at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-[#F4E4BC] skew-y-2 translate-y-16 blur-xl opacity-20" />
       </div>
 
-      {/* OpenSea Style Header */}
-      <header className="sticky top-0 z-50 px-4 sm:px-8 py-4 backdrop-blur-xl border-b border-white/10 bg-black/60 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-opensea-blue rounded-xl flex items-center justify-center shadow-lg transform -rotate-6">
+      {/* Modern Header */}
+      <header className="sticky top-0 z-50 px-4 sm:px-10 py-5 backdrop-blur-2xl border-b border-white/5 bg-black/40 flex items-center justify-between">
+        <div className="flex items-center gap-4 group cursor-pointer">
+          <div className="w-11 h-11 bg-gradient-to-tr from-opensea-blue to-cyan-400 rounded-2xl flex items-center justify-center shadow-lg transform transition-transform group-hover:rotate-12">
             <ShoppingBag className="text-white" size={24} />
           </div>
           <div className="hidden sm:block">
-            <h1 className="font-black tracking-tight text-xl">OUWIBO SEA</h1>
-            <p className="text-[8px] font-bold text-opensea-blue uppercase tracking-widest">Base Marketplace</p>
+            <h1 className="font-black tracking-tight text-2xl">OUWIBO SEA</h1>
+            <p className="text-[9px] font-black text-opensea-blue uppercase tracking-[0.2em] mt-1">Base Official Portal</p>
           </div>
         </div>
 
-        <div className="flex-1 max-w-xs mx-4 hidden md:block">
-           <div className="relative">
-              <input type="text" placeholder="Search items, collections..." className="w-full bg-white/5 border border-white/10 rounded-xl px-10 py-2 text-sm focus:outline-none focus:border-opensea-blue transition-all" />
-              <LayoutGrid className="absolute left-3 top-2.5 text-white/30" size={16} />
-           </div>
+        <div className="flex items-center gap-4">
+          <ConnectButton 
+            client={client} 
+            theme="dark" 
+            wallets={wallets} 
+            chain={base} 
+            connectButton={{ 
+              className: "!bg-opensea-blue hover:!bg-opensea-dark !text-white !font-black !px-8 !py-3 !rounded-2xl !transition-all !shadow-xl !active:scale-95 !text-sm",
+              label: "Connect"
+            }} 
+          />
         </div>
-
-        <ConnectButton 
-          client={client} 
-          theme="dark" 
-          wallets={wallets} 
-          chain={base} 
-          connectButton={{ 
-            className: "!bg-opensea-blue hover:!bg-opensea-dark !text-white !font-bold !px-6 !py-2.5 !rounded-xl !transition-all !shadow-lg !shadow-opensea-blue/20",
-            label: "Wallet"
-          }} 
-        />
       </header>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-4 pt-8">
+      {/* Main Content Area */}
+      <div className="relative z-10 max-w-5xl mx-auto px-6 pt-10">
+        {error && (
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-400 text-sm italic font-medium">
+            <AlertCircle size={18} /> {error}
+            <button onClick={() => setError(null)} className="ml-auto opacity-40 hover:opacity-100">✕</button>
+          </motion.div>
+        )}
+
         <AnimatePresence mode="wait">
-          {activeTab === 'mint' && <MintView key="mint" contract={contract} isConnected={isConnected} minted={minted} setMinted={setMinted} setTxHash={setTxHash} txHash={txHash} mintCount={mintCount} setMintCount={setMintCount} account={account} />}
+          {activeTab === 'mint' && <MintView key="mint" contract={contract} isConnected={isConnected} minted={minted} setMinted={setMinted} setTxHash={setTxHash} txHash={txHash} mintCount={mintCount} setMintCount={setMintCount} account={account} setError={setError} />}
           {activeTab === 'market' && <MarketView key="market" />}
           {activeTab === 'profile' && <ProfileView key="profile" account={account} contract={contract} />}
           {activeTab === 'roadmap' && <RoadmapView key="roadmap" />}
         </AnimatePresence>
       </div>
 
-      {/* OpenSea Style Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#04111D]/90 backdrop-blur-2xl border-t border-white/10 p-2 sm:p-4 flex items-center justify-center gap-2 sm:gap-8">
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-[#04111D]/80 backdrop-blur-3xl border border-white/10 p-2 rounded-[32px] flex items-center gap-2 shadow-2xl">
         {[
           { id: 'mint', icon: LayoutGrid, label: 'Explore' },
-          { id: 'market', icon: ShoppingBag, label: 'Stats' },
-          { id: 'profile', icon: User, label: 'Profile' },
-          { id: 'roadmap', icon: Info, label: 'Info' },
+          { id: 'market', icon: ShoppingBag, label: 'Secondary' },
+          { id: 'profile', icon: User, label: 'Treasury' },
+          { id: 'roadmap', icon: Map, label: 'Path' },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as Tab)}
-            className={`flex items-center gap-2 px-4 sm:px-6 py-3 rounded-xl transition-all duration-300 ${activeTab === tab.id ? 'bg-white/10 text-opensea-blue' : 'text-white/60 hover:bg-white/5'}`}
+            className={`flex items-center gap-2 px-6 py-3 rounded-[24px] transition-all duration-500 group ${activeTab === tab.id ? 'bg-opensea-blue text-white shadow-lg' : 'text-white/40 hover:text-white/70 hover:bg-white/5'}`}
           >
-            <tab.icon size={20} />
-            <span className="text-sm font-bold hidden sm:block">{tab.label}</span>
+            <tab.icon size={20} className={activeTab === tab.id ? 'animate-pulse' : ''} />
+            <span className={`text-xs font-black uppercase tracking-widest overflow-hidden transition-all duration-500 ${activeTab === tab.id ? 'max-w-[100px] opacity-100 ml-1' : 'max-w-0 opacity-0'}`}>{tab.label}</span>
           </button>
         ))}
       </nav>
@@ -157,86 +162,92 @@ export default function OuwiboBaseApp() {
   );
 }
 
-// --- OpenSea Styled Sub-Views ---
+// --- Optimized Mint View ---
 
-function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash, mintCount, setMintCount, account }: any) {
+function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash, mintCount, setMintCount, account, setError }: any) {
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="grid md:grid-cols-2 gap-8 items-start">
-      {/* NFT Card - OpenSea Style */}
-      <div className="bg-opensea-card rounded-2xl overflow-hidden border border-white/10 shadow-2xl hover:translate-y-[-4px] transition-transform duration-300">
-        <div className="relative aspect-square">
-          <img src="/ouwibo-nft.png" alt="NFT" className="w-full h-full object-cover" />
-          <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-md p-2 rounded-lg">
-             <Zap size={16} className="text-bikini-yellow" />
-          </div>
-        </div>
-        <div className="p-5 flex flex-col gap-1">
-          <p className="text-opensea-blue text-xs font-bold uppercase tracking-tight">Ouwibo Genesis</p>
-          <h2 className="text-xl font-black italic tracking-tight">Ouwibo Pass #0</h2>
-          <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-4">
-             <div>
-                <p className="text-white/40 text-[10px] uppercase font-bold">Price</p>
-                <p className="font-black text-lg">FREE <span className="text-white/40 text-xs">GASLESS</span></p>
-             </div>
-             <div className="text-right">
-                <p className="text-white/40 text-[10px] uppercase font-bold">Max Mint</p>
-                <p className="font-black text-lg italic text-base-amber">1 Per Wallet</p>
-             </div>
+    <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="grid lg:grid-cols-12 gap-12 items-center">
+      
+      {/* Visual Side */}
+      <div className="lg:col-span-5 group">
+        <div className="relative aspect-[4/5] rounded-[48px] overflow-hidden border-2 border-white/10 bg-black shadow-2xl transition-all duration-700 group-hover:border-opensea-blue/50 group-hover:shadow-opensea-blue/10">
+          <Image 
+            src="/ouwibo-nft.png" 
+            alt="Ouwibo Genesis NFT" 
+            fill 
+            className="object-cover transition-transform duration-[2s] group-hover:scale-110"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
+          <div className="absolute bottom-10 left-10 right-10">
+            <p className="text-opensea-blue text-xs font-black uppercase tracking-[0.4em] mb-2 drop-shadow-md">Tier: Genesis</p>
+            <h2 className="text-4xl font-black italic tracking-tighter uppercase leading-none drop-shadow-2xl">Ouwibo Pass #0</h2>
           </div>
         </div>
       </div>
 
-      {/* Description & Action */}
-      <div className="flex flex-col gap-6 pt-4">
-        <div className="space-y-2">
-           <h1 className="text-4xl font-black italic tracking-tighter uppercase leading-none">Ouwibo Genesis Pass</h1>
-           <div className="flex items-center gap-2">
-              <span className="px-2 py-1 bg-white/5 rounded text-[10px] font-bold text-white/60">ERC-1155</span>
-              <span className="px-2 py-1 bg-base-emerald/20 rounded text-[10px] font-bold text-base-emerald uppercase">Live on Base</span>
+      {/* Info Side */}
+      <div className="lg:col-span-7 space-y-8">
+        <div className="space-y-4">
+           <div className="inline-flex items-center gap-2 px-4 py-1 bg-white/5 border border-white/10 rounded-full">
+              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Base Mainnet</span>
+              <ShieldCheck size={12} className="text-opensea-blue" />
            </div>
+           <h1 className="text-6xl font-black italic tracking-tighter uppercase leading-[0.9] bg-gradient-to-br from-white via-white to-white/20 bg-clip-text text-transparent">
+             Secure Your <br/>Legacy Pass.
+           </h1>
+           <p className="text-lg text-white/50 leading-relaxed italic max-w-xl font-medium">
+             Gerbang eksklusif menuju ekosistem Ouwibo di jaringan Base. Dapatkan akses prioritas airdrop, fitur premium, dan koleksi langka.
+           </p>
         </div>
 
-        <p className="text-white/60 leading-relaxed italic text-sm">
-          Koleksi perdana dari Ouwibo Sea. Genesis Pass memberikan akses eksklusif ke portal airdrop, fitur trading premium, dan utilitas ekosistem di masa depan.
-        </p>
-
-        <div className="bg-white/5 rounded-2xl p-6 border border-white/10 space-y-4">
-           <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                 <Users size={16} className="text-white/40" />
-                 <span className="text-xs text-white/40 font-bold">1/1 Claim Limit</span>
+        {/* Action Card */}
+        <div className="p-1 bg-gradient-to-r from-opensea-blue/20 to-transparent rounded-[40px]">
+           <div className="bg-[#0a0a0a]/60 backdrop-blur-3xl p-8 rounded-[39px] border border-white/5 space-y-6">
+              <div className="flex justify-between items-end border-b border-white/5 pb-6">
+                 <div>
+                    <p className="text-[10px] font-black text-white/30 uppercase mb-1 tracking-widest">Minting Fee</p>
+                    <p className="text-2xl font-black italic text-base-emerald uppercase">Free Gasless</p>
+                 </div>
+                 <div className="text-right">
+                    <p className="text-[10px] font-black text-white/30 uppercase mb-1 tracking-widest">Allowance</p>
+                    <p className="text-2xl font-black italic text-base-amber">1 / Wallet</p>
+                 </div>
               </div>
-              <ShieldCheck size={16} className="text-opensea-blue" />
-           </div>
-           
-           {!minted ? (
-             isConnected ? (
-               <TransactionButton
-                 transaction={() => claimTo({ contract, to: account!.address, tokenId: 0n, quantity: 1n })}
-                 onTransactionConfirmed={( receipt ) => { setMinted(true); setTxHash(receipt.transactionHash); setMintCount((p: any) => p + 1); }}
-                 className="!w-full !bg-opensea-blue hover:!bg-opensea-dark !text-white !font-black !py-6 !rounded-xl !text-lg !uppercase !shadow-xl !border-none active:!scale-95 transition-all"
-               >
-                 MINT GENESIS PASS (MAX 1)
-               </TransactionButton>
-             ) : (
-               <div className="p-4 bg-white/5 rounded-xl border border-dashed border-white/10 text-center">
-                  <p className="text-xs font-bold text-white/30 uppercase tracking-widest italic">Connect wallet to begin minting</p>
-               </div>
-             )
-           ) : (
-             <div className="flex flex-col gap-3">
-                <div className="bg-base-emerald/10 border border-base-emerald/20 p-4 rounded-xl flex items-center gap-3">
-                   <CheckCircle2 size={24} className="text-base-emerald" />
-                   <div>
-                      <p className="text-xs font-black uppercase">You have claimed your 1 NFT</p>
-                      <a href={`https://basescan.org/tx/${txHash}`} target="_blank" className="text-[10px] text-white/40 underline">View Transaction</a>
+
+              {!minted ? (
+                isConnected ? (
+                  <TransactionButton
+                    transaction={() => claimTo({ contract, to: account!.address, tokenId: 0n, quantity: 1n })}
+                    onTransactionConfirmed={( receipt ) => { setMinted(true); setTxHash(receipt.transactionHash); setMintCount((p: any) => p + 1); }}
+                    onError={(err) => setError(err.message)}
+                    className="!w-full !bg-opensea-blue hover:!bg-opensea-dark !text-white !font-black !py-8 !rounded-3xl !text-xl !uppercase !shadow-2xl !shadow-opensea-blue/20 !border-none transition-all active:scale-95"
+                  >
+                    MINT GENESIS PASS (MAX 1)
+                  </TransactionButton>
+                ) : (
+                  <div className="p-6 bg-white/5 rounded-3xl border border-dashed border-white/10 text-center space-y-3">
+                     <Wallet className="mx-auto text-white/20" size={32} />
+                     <p className="text-xs font-bold text-white/30 uppercase tracking-widest italic">Connect your wallet to participate</p>
+                  </div>
+                )
+              ) : (
+                <div className="space-y-4">
+                   <div className="bg-base-emerald/10 border border-base-emerald/20 p-6 rounded-3xl flex items-center gap-5">
+                      <div className="w-12 h-12 bg-base-emerald rounded-2xl flex items-center justify-center shadow-lg shadow-base-emerald/20">
+                         <CheckCircle2 size={28} className="text-black" />
+                      </div>
+                      <div>
+                         <p className="text-sm font-black uppercase italic leading-none mb-1">Claimed Success!</p>
+                         <a href={`https://basescan.org/tx/${txHash}`} target="_blank" className="text-[10px] text-white/40 hover:text-opensea-blue transition-colors underline uppercase font-bold tracking-widest">Verify Transaction</a>
+                      </div>
                    </div>
+                   <button onClick={() => window.open('https://warpcast.com', '_blank')} className="w-full bg-white text-black font-black py-5 rounded-3xl text-sm uppercase tracking-[0.2em] hover:bg-bikini-yellow transition-all shadow-xl">
+                      SHARE TO FEED
+                   </button>
                 </div>
-                <button onClick={() => window.open('https://warpcast.com', '_blank')} className="w-full bg-white text-black font-black py-4 rounded-xl text-xs uppercase tracking-widest hover:bg-bikini-yellow transition-all">
-                   Share to Feed
-                </button>
-             </div>
-           )}
+              )}
+           </div>
         </div>
       </div>
     </motion.div>
@@ -245,34 +256,15 @@ function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash,
 
 function MarketView() {
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-         <h2 className="text-3xl font-black italic uppercase">Marketplace</h2>
-         <div className="flex gap-2">
-            {['Items', 'Activity'].map(t => (
-              <button key={t} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${t === 'Items' ? 'bg-white/10' : 'text-white/40 hover:text-white/60'}`}>{t}</button>
-            ))}
-         </div>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-10">
+      <div className="text-center space-y-4">
+         <h2 className="text-5xl font-black italic uppercase tracking-tighter">Secondary Sea.</h2>
+         <p className="text-white/40 italic font-medium max-w-lg mx-auto">Explore the upcoming decentralized marketplace for Ouwibo Genesis holders.</p>
       </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-        {[1,2,3,4,5,6,7,8].map(i => (
-          <div key={i} className="bg-opensea-card rounded-xl overflow-hidden border border-white/5 opacity-40 grayscale group cursor-not-allowed">
-             <div className="aspect-square bg-white/5 flex items-center justify-center">
-                <ShoppingBag size={24} className="text-white/10" />
-             </div>
-             <div className="p-3 space-y-2">
-                <div className="h-3 bg-white/10 rounded w-1/2" />
-                <div className="h-2 bg-white/5 rounded w-3/4" />
-             </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="bg-opensea-blue/10 border border-opensea-blue/20 p-8 rounded-3xl text-center backdrop-blur-md">
-         <ShoppingBag size={40} className="text-opensea-blue mx-auto mb-4" />
-         <h3 className="text-xl font-black uppercase italic">Marketplace Launching Soon</h3>
-         <p className="text-xs text-white/50 mt-2 max-w-sm mx-auto italic font-medium">Trading sekunder Ouwibo Sea akan segera hadir di jaringan Base. Pantau terus update selanjutnya!</p>
+      <div className="bg-white/5 border border-white/10 p-20 rounded-[48px] text-center backdrop-blur-xl border-dashed">
+         <ShoppingBag size={48} className="text-opensea-blue/40 mx-auto mb-6" />
+         <h3 className="text-2xl font-black uppercase italic mb-2">Marketplace Loading...</h3>
+         <p className="text-sm text-white/40 italic">Trading sekunder sedang disinkronkan dengan protokol Base.</p>
       </div>
     </motion.div>
   );
@@ -286,44 +278,25 @@ function ProfileView({ account, contract }: any) {
   });
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
-      {/* Profile Banner Style */}
-      <div className="relative h-32 bg-gradient-to-r from-opensea-blue to-bikini-yellow rounded-3xl overflow-hidden shadow-2xl">
-         <div className="absolute inset-0 bg-black/20" />
-         <div className="absolute -bottom-8 left-8">
-            <div className="w-24 h-24 bg-[#0a0a0a] border-4 border-[#0a0a0a] rounded-2xl shadow-2xl flex items-center justify-center overflow-hidden">
-               {account ? <div className="text-4xl">🔱</div> : <User size={40} className="text-white/10" />}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
+      <div className="relative h-48 bg-gradient-to-br from-opensea-blue via-cyan-500 to-bikini-yellow rounded-[48px] shadow-2xl overflow-hidden">
+         <div className="absolute -bottom-10 left-12">
+            <div className="w-32 h-32 bg-[#051923] border-[6px] border-[#051923] rounded-[40px] shadow-2xl flex items-center justify-center overflow-hidden">
+               {account ? <div className="text-5xl">🔱</div> : <User size={48} className="text-white/5" />}
             </div>
          </div>
       </div>
-
-      <div className="pt-8 px-8">
-         <h2 className="text-3xl font-black italic uppercase tracking-tighter">
-            {account ? `${account.address.slice(0,6)}...${account.address.slice(-4)}` : 'Unnamed Collector'}
+      <div className="pt-6 px-12">
+         <h2 className="text-4xl font-black italic uppercase tracking-tighter">
+            {account ? `${account.address.slice(0,6)}...${account.address.slice(-4)}` : 'Unnamed Voyager'}
          </h2>
-         <p className="text-xs font-bold text-white/40 uppercase tracking-widest mt-1 italic">Ouwibo Member since 2026</p>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-         <div className="bg-opensea-card p-6 rounded-2xl border border-white/10 flex items-center justify-between group hover:border-opensea-blue transition-all">
+         <p className="text-xs font-bold text-opensea-blue uppercase tracking-[0.3em] mt-2 italic">Active Collector</p>
+         <div className="mt-8 p-6 bg-white/5 rounded-3xl border border-white/10 flex justify-between items-center">
             <div className="flex items-center gap-4">
-               <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center"><Zap className="text-bikini-yellow" size={20} /></div>
-               <div>
-                  <p className="text-[10px] font-bold text-white/40 uppercase">Assets Owned</p>
-                  <p className="font-black text-lg italic uppercase">Genesis Pass</p>
-               </div>
+               <Zap className="text-bikini-yellow" />
+               <span className="font-bold italic uppercase">Genesis Pass Owned</span>
             </div>
             <p className="text-3xl font-black text-opensea-blue">{isLoading ? '...' : (balance?.toString() || '0')}</p>
-         </div>
-
-         <div className="bg-opensea-card p-6 rounded-2xl border border-white/10 flex items-center justify-between opacity-50 italic">
-            <div className="flex items-center gap-4">
-               <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center"><Wallet className="text-white/40" size={20} /></div>
-               <div>
-                  <p className="text-[10px] font-bold text-white/40 uppercase">Total Volume</p>
-                  <p className="font-black text-lg uppercase tracking-tight">0.00 ETH</p>
-               </div>
-            </div>
          </div>
       </div>
     </motion.div>
@@ -332,37 +305,31 @@ function ProfileView({ account, contract }: any) {
 
 function RoadmapView() {
   const steps = [
-    { phase: "Q1 2026", title: "Genesis Mint", status: "Live", desc: "Minting publik 6,969 Genesis Pass.", color: "opensea-blue" },
-    { phase: "Q2 2026", title: "Shell Token", status: "Pending", desc: "Distribusi token tata kelola ekosistem.", color: "bikini-yellow" },
-    { phase: "Q3 2026", title: "Coral DAO", status: "Future", desc: "Integrasi voting komunitas.", color: "bikini-pink" },
+    { phase: "Phase 01", title: "Genesis Launch", status: "Active", desc: "Global minting of 6,969 Genesis Passes on Base." },
+    { phase: "Phase 02", title: "Airdrop Gateway", status: "Upcoming", desc: "Snapshot and reward distribution for holders." },
+    { phase: "Phase 03", title: "Social DAO", status: "Planning", desc: "Governance integration with Farcaster protocol." },
   ];
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
-      <div className="text-center">
-         <h2 className="text-4xl font-black italic uppercase tracking-tighter">Ouwibo Roadmap</h2>
-         <div className="w-24 h-1 bg-opensea-blue mx-auto mt-2 rounded-full" />
+    <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-16 py-10">
+      <div className="text-center space-y-4">
+         <h2 className="text-6xl font-black italic uppercase tracking-tighter">The Blue Map.</h2>
+         <p className="text-white/40 italic font-medium max-w-xl mx-auto text-lg">Visi ekosistem Ouwibo untuk tahun 2026.</p>
       </div>
-
-      <div className="grid gap-6">
+      <div className="grid gap-8 max-w-4xl mx-auto">
         {steps.map((step, i) => (
-          <div key={i} className="flex gap-6 items-center group">
-            <div className="text-right w-24 hidden sm:block">
-               <p className="text-[10px] font-black text-white/30 uppercase italic">{step.phase}</p>
-            </div>
-            <div className="flex-1 bg-opensea-card border border-white/10 p-6 rounded-2xl group-hover:border-opensea-blue transition-all">
-               <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-black text-lg italic uppercase">{step.title}</h3>
-                  <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${step.status === 'Live' ? 'bg-base-emerald text-black' : 'bg-white/5 text-white/40'}`}>{step.status}</span>
-               </div>
-               <p className="text-xs text-white/50 italic leading-relaxed">{step.desc}</p>
-            </div>
+          <div key={i} className="relative bg-white/5 border border-white/10 p-10 rounded-[40px] flex flex-col md:flex-row gap-8 items-center transition-all duration-500 hover:bg-white/[0.08]">
+             <div className="w-20 h-20 bg-black rounded-3xl flex items-center justify-center font-black text-3xl italic text-opensea-blue shrink-0">0{i+1}</div>
+             <div className="space-y-2 flex-1 text-center md:text-left">
+                <div className="flex items-center justify-center md:justify-start gap-3">
+                   <span className="text-[10px] font-black text-opensea-blue uppercase tracking-[0.3em]">{step.phase}</span>
+                   <span className={`px-3 py-0.5 rounded-full text-[8px] font-black uppercase ${step.status === 'Active' ? 'bg-base-emerald text-black' : 'bg-white/10 text-white/40'}`}>{step.status}</span>
+                </div>
+                <h3 className="text-3xl font-black italic uppercase tracking-tight">{step.title}</h3>
+                <p className="text-white/50 text-sm italic">{step.desc}</p>
+             </div>
           </div>
         ))}
-      </div>
-
-      <div className="bg-bikini-yellow/10 border-2 border-dashed border-bikini-yellow/20 p-8 rounded-3xl text-center">
-         <p className="text-sm font-black italic uppercase text-bikini-yellow tracking-widest animate-pulse">Wait for the next Wave...</p>
       </div>
     </motion.div>
   );
