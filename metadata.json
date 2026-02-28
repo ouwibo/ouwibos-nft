@@ -1,0 +1,5 @@
+{
+  "name": "ouwibo swap",
+  "description": "A seamless token swap mini-app for Farcaster and Base, designed for speed and simplicity.",
+  "requestFramePermissions": []
+}
