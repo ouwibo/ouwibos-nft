@@ -1,0 +1,18 @@
+{
+  "accountAssociation": {
+    "header": "eyJmaWQiOiA2OTY5LCAidHlwZSI6ICJjdXN0b2RpYWwiLCAia2V5IjogIjB4M2Q1NjY4Qjg5RDUwQ0Y2OTI5NkJENTQ2QjZFQUE0Njk2OTY5Njk2OSJ9",
+    "payload": "eyJkb21haW4iOiAib3V3aWJvcy1uZnQudmVyY2VsLmFwcCJ9",
+    "signature": "MHg2OTY5Njk2OTY5Njk2OTY5Njk2OTY5Njk2OTY5Njk2OTY5Njk2OTY5Njk2OTY5Njk2OTY5Njk2OTY5Njk2OTY5Njk2OTY5Njk2OTY5Njk2OTY5Njk2OTY5Njk2OTY5Njk2OTY5Njk2OTY5Njk2OTY5Njk2OTY5Njk2OTY5Njk2OTY5Njk2OTY5Njk2OTY5"
+  },
+  "frame": {
+    "version": "1",
+    "name": "Ouwibo NFT",
+    "iconUrl": "https://ouwibos-nft.vercel.app/ouwibo-nft.png",
+    "homeUrl": "https://ouwibos-nft.vercel.app",
+    "imageUrl": "https://ouwibos-nft.vercel.app/ouwibo-nft.png",
+    "buttonTitle": "Mint Ouwibo NFT",
+    "splashImageUrl": "https://ouwibos-nft.vercel.app/ouwibo-nft.png",
+    "splashBackgroundColor": "#000000",
+    "webhookUrl": "https://ouwibos-nft.vercel.app/api/webhook"
+  }
+}
