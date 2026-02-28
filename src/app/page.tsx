@@ -113,7 +113,7 @@ export default function OuwiboBaseApp() {
           <div className="w-7 h-7 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center shadow-lg">
             <Zap className="text-white fill-current" size={14} />
           </div>
-          <div className="text-left text-left">
+          <div className="text-left">
             <h1 className="font-black text-xs tracking-tighter text-white leading-none">OUWIBO</h1>
             <p className="text-[6px] font-black text-secondary uppercase tracking-widest mt-0.5 leading-none">Base Network</p>
           </div>
@@ -182,10 +182,10 @@ function ExploreView({ onNftClick }: any) {
           <span className="text-[6px] font-black text-primary uppercase tracking-widest leading-none">Verified Infrastructure</span>
         </div>
         <h1 className="text-4xl font-black italic tracking-tighter text-white leading-none uppercase text-left">
-          Atlantis <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary text-left">Archives.</span>
+          OUWIBO <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary text-left">UTILITY.</span>
         </h1>
         <p className="text-slate-400 text-[10px] font-medium italic leading-tight max-w-[280px] text-left">
-          Ekosistem aset digital resmi Ouwibo di Base. Akses pass utama untuk membuka utilitas protokol.
+          Portal aset digital resmi Ouwibo di jaringan Base. Minting Utility NFT untuk membuka akses penuh ke protokol.
         </p>
       </section>
 
@@ -209,7 +209,7 @@ function ExploreView({ onNftClick }: any) {
               </div>
               <div className="flex-1 space-y-1.5 pr-2 text-left">
                 <div className="flex items-center justify-between text-left">
-                  <span className="text-[7px] font-black text-secondary uppercase tracking-widest bg-secondary/10 px-1.5 py-0.5 rounded-md leading-none">Main Asset</span>
+                  <span className="text-[7px] font-black text-secondary uppercase tracking-widest bg-secondary/10 px-1.5 py-0.5 rounded-md leading-none">Primary Pass</span>
                   <span className="text-[8px] font-black text-slate-600 uppercase italic leading-none">ID #{nft.id.toString()}</span>
                 </div>
                 <h3 className="text-lg font-black italic uppercase text-white leading-none tracking-tight group-hover:text-primary transition-colors text-left">{nft.name}</h3>
@@ -226,11 +226,11 @@ function ExploreView({ onNftClick }: any) {
         </div>
       </section>
 
-      <section className="bg-gradient-to-tr from-white/5 to-transparent border border-white/10 rounded-3xl p-6 text-center space-y-3 relative overflow-hidden">
+      <section className="bg-gradient-to-tr from-white/5 to-transparent border border-white/10 rounded-3xl p-6 text-center space-y-3 relative overflow-hidden text-center">
         <div className="absolute top-0 right-0 w-20 h-20 bg-primary/10 blur-3xl" />
         <Clock size={20} className="text-slate-500 mx-auto" />
-        <h4 className="text-[10px] font-black uppercase text-white tracking-widest leading-none">Future Expansions</h4>
-        <p className="text-[8px] text-slate-500 italic font-medium leading-tight text-center">Koleksi tambahan akan dirilis secara bertahap <br/>melalui mekanisme tata kelola komunitas.</p>
+        <h4 className="text-[10px] font-black uppercase text-white tracking-widest leading-none text-center">Future Integration</h4>
+        <p className="text-[8px] text-slate-500 italic font-medium leading-tight text-center">Modul tambahan akan dirilis secara bertahap <br/>melalui mekanisme tata kelola komunitas.</p>
       </section>
     </motion.div>
   );
@@ -243,7 +243,7 @@ function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash,
         <Image src={nft.image} alt="NFT" fill className="object-cover" priority />
         <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-60" />
         <div className="absolute bottom-3 left-3 right-3 text-left">
-          <p className="text-primary text-[8px] font-black uppercase tracking-widest mb-0.5 leading-none">Official Genesis</p>
+          <p className="text-primary text-[8px] font-black uppercase tracking-widest mb-0.5 leading-none">Utility Asset</p>
           <h2 className="text-lg font-black italic uppercase text-white leading-none truncate">{nft.name}</h2>
         </div>
       </div>
@@ -251,7 +251,7 @@ function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash,
       <div className="space-y-4 px-1 text-left">
         <div className="flex items-center gap-2 text-secondary text-left">
           <ShieldCheck size={12} />
-          <span className="text-[8px] font-black uppercase tracking-widest italic leading-none">Asset Intelligence</span>
+          <span className="text-[8px] font-black uppercase tracking-widest italic leading-none">Official Description</span>
         </div>
         <p className="text-[10px] text-slate-400 font-medium italic leading-relaxed text-left">
           {nft.desc}
@@ -260,12 +260,12 @@ function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash,
 
       <div className="bg-[#0f172a]/40 backdrop-blur-3xl border border-white/5 rounded-2xl p-4 space-y-4 text-left">
         <div className="flex justify-between items-center border-b border-white/5 pb-3 text-left">
-          <div className="text-left text-left">
+          <div className="text-left text-left text-left">
             <p className="text-[6px] font-black text-slate-500 uppercase tracking-widest mb-0.5 leading-none text-left">Minting Fee</p>
             <p className="text-sm font-black italic text-base-emerald uppercase leading-none text-left">Free Gasless</p>
           </div>
-          <div className="text-right text-right">
-            <p className="text-[6px] font-black text-slate-500 uppercase tracking-widest mb-0.5 leading-none text-right text-right">Minted Status</p>
+          <div className="text-right text-right text-right">
+            <p className="text-[6px] font-black text-slate-500 uppercase tracking-widest mb-0.5 leading-none text-right text-right">Supply Count</p>
             <p className="text-sm font-black italic text-white tracking-tighter leading-none font-mono text-right text-right">
               {loadingSupply ? '..' : (totalSupply?.toString() || '0')} / {nft.supply}
             </p>
@@ -281,26 +281,26 @@ function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash,
                 onError={(e) => setError(e.message)}
                 className="!w-full !bg-gradient-to-r !from-primary !to-indigo-600 !text-white !font-black !py-3.5 !rounded-xl !text-[10px] !uppercase !shadow-lg !border-none active:scale-95 transition-all"
               >
-                INITIALIZE MINT (MAX 1)
+                INITIALIZE MINT (#{nft.id.toString()})
               </TransactionButton>
             ) : (
               <div className="p-4 border border-dashed border-white/10 rounded-xl text-center space-y-2">
                 <Wallet className="mx-auto text-slate-600" size={18} />
-                <p className="text-[7px] font-black text-slate-500 uppercase tracking-widest italic leading-none">Connect to the secure network</p>
+                <p className="text-[7px] font-black text-slate-500 uppercase tracking-widest italic leading-none text-center">Connect to the secure network</p>
               </div>
             )
           ) : (
             <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="space-y-2.5">
               <div className="bg-base-emerald/10 border border-base-emerald/20 p-3 rounded-xl flex items-center gap-3 text-left">
-                <div className="w-8 h-8 bg-base-emerald rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-base-emerald rounded-lg flex items-center justify-center shadow-lg">
                   <CheckCircle2 size={18} className="text-black" />
                 </div>
-                <div className="text-left text-left">
+                <div className="text-left text-left text-left">
                   <h4 className="text-[10px] font-black uppercase text-white leading-none text-left">Mint Successful</h4>
                   <a href={`https://basescan.org/tx/${txHash}`} target="_blank" className="text-[6px] font-bold text-secondary uppercase hover:underline leading-none text-left">Explorer Receipt ↗</a>
                 </div>
               </div>
-              <button onClick={shareToWarpcast} className="w-full bg-white text-black font-black py-3 rounded-xl text-[8px] uppercase tracking-widest transition-all">
+              <button onClick={shareToWarpcast} className="w-full bg-white text-black font-black py-3 rounded-xl text-[8px] uppercase tracking-widest transition-all shadow-xl">
                 Share Achievement
               </button>
             </motion.div>
@@ -357,7 +357,7 @@ function ProfileView({ account, contract }: any) {
               <Zap className="text-primary" size={20} />
             </div>
             <div className="text-left">
-              <p className="text-[7px] font-black text-slate-500 uppercase leading-none text-left">Primary Asset</p>
+              <p className="text-[7px] font-black text-slate-500 uppercase leading-none text-left">Utility Balance</p>
               <p className="text-lg font-black italic text-white leading-none mt-1 text-left">Genesis Pass</p>
             </div>
           </div>
@@ -365,7 +365,7 @@ function ProfileView({ account, contract }: any) {
         </div>
 
         <div className="bg-gradient-to-b from-white/5 to-transparent rounded-2xl border border-white/5 p-5 space-y-4 text-left">
-          <h4 className="font-black text-white text-[8px] uppercase tracking-[0.3em] text-center border-b border-white/10 pb-3 italic leading-none">Vault Status</h4>
+          <h4 className="font-black text-white text-[8px] uppercase tracking-[0.3em] text-center border-b border-white/10 pb-3 italic leading-none text-center">Vault Status</h4>
           <div className="space-y-3 text-left">
             {[
               { l: 'Network', v: 'Base Mainnet', c: 'text-base-emerald' },
@@ -387,8 +387,8 @@ function ProfileView({ account, contract }: any) {
 function RoadmapView() {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8 pt-4 text-center">
-      <div className="space-y-2 text-center">
-        <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white text-center">BLUE MAP.</h3>
+      <div className="space-y-2 text-center text-center">
+        <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white text-center leading-none">THE BLUE MAP.</h3>
         <p className="text-slate-400 text-[10px] font-medium italic leading-relaxed px-4 text-center">
           Evolusi strategis infrastruktur ekosistem Ouwibo di Base.
         </p>
@@ -402,7 +402,7 @@ function RoadmapView() {
         ].map((step, i) => (
           <div key={i} className="relative bg-[#0f172a]/40 backdrop-blur-2xl border border-white/5 p-5 rounded-2xl flex items-center gap-5 text-left">
             <div className="text-2xl font-black italic text-white/5 select-none leading-none">{step.p}</div>
-            <div className="space-y-1 text-left">
+            <div className="space-y-1 text-left text-left">
               <h4 className="text-sm font-black italic uppercase text-primary leading-none text-left">{step.t}</h4>
               <p className="text-slate-400 text-[9px] italic leading-tight text-left">{step.d}</p>
             </div>
