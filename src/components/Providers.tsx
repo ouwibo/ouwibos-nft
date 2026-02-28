@@ -1,30 +1,23 @@
 'use client';
 
 import { ReactNode, useState, useEffect } from 'react';
-import { createThirdwebClient } from "thirdweb";
-import { ThirdwebProvider } from "thirdweb/react";
 import '@rainbow-me/rainbowkit/styles.css';
 import {
   getDefaultConfig,
   RainbowKitProvider,
   darkTheme,
 } from '@rainbow-me/rainbowkit';
-import { WagmiProvider } from 'wagmi';
+import { WagmiProvider, createConfig, http } from 'wagmi';
 import { base } from 'wagmi/chains';
-import {
-  QueryClientProvider,
-  QueryClient,
-} from "@tanstack/react-query";
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
 
-const client = createThirdwebClient({
-  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID || "bdaebf7f32c0b8df548c6b9c5f800dbf",
-});
-
-const config = getDefaultConfig({
-  appName: 'OUWIBO GENESIS',
-  projectId: '69a11773dce51e894f97278f',
+const config = createConfig({
   chains: [base],
-  ssr: true,
+  connectors: [farcasterFrame()],
+  transports: {
+    [base.id]: http(),
+  },
 });
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -43,9 +36,7 @@ export function Providers({ children }: { children: ReactNode }) {
           accentColorForeground: 'white',
           borderRadius: 'large',
         })}>
-          <ThirdwebProvider>
-            {mounted ? children : null}
-          </ThirdwebProvider>
+          {mounted ? children : null}
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
