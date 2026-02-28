@@ -314,10 +314,19 @@ function ProfileView({ address }: any) {
 
 function AiChatView() {
   const [messages, setMessages] = useState([
-    { role: 'bot', text: 'Hello Voyager! I am Clawdbot, your Ouwibo AI assistant. How can I help you navigate the protocol today?' }
+    { role: 'bot', text: 'Greetings, Voyager! I am **Clawdbot**, the neural guide for **OUWIBO GENESIS**. How can I assist your journey through the protocol today?' }
   ]);
   const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
+
+  const KNOWLEDGE_BASE: Record<string, string> = {
+    'genesis': 'The **OUWIBO Genesis Pass (ID #0)** is our legendary tier asset. It grants 100% governance rights and the highest multiplier for $SHELL allocations.',
+    'shell': '**$SHELL** is the native utility token of the Atlantis ecosystem. 60% of the supply is reserved for the community, primarily Genesis holders.',
+    'base': 'We are built natively on **Base**, the secure and low-cost Layer 2 network powered by Coinbase.',
+    'mint': 'You can initialize your mint in the **Mint** tab. Remember, the limit is **1 Pass per wallet** to ensure fair distribution.',
+    'airdrop': 'The first snapshot for the **$SHELL airdrop** is scheduled for Q2 2026. Keep your Genesis Pass secured in your wallet.',
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -325,23 +334,37 @@ function AiChatView() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isTyping]);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    const userMsg = { role: 'user', text: input };
+  const handleSend = async (textOverride?: string) => {
+    const messageText = textOverride || input;
+    if (!messageText.trim()) return;
+
+    const userMsg = { role: 'user', text: messageText };
     setMessages(prev => [...prev, userMsg]);
-    setInput('');
+    if (!textOverride) setInput('');
     
-    // Simulate AI response
+    setIsTyping(true);
+
+    // Simulate AI Processing
     setTimeout(() => {
-      const botMsg = { role: 'bot', text: 'Protocol data synchronizing... My neural links are currently being calibrated for the Genesis launch. Stay tuned for advanced ecosystem intelligence!' };
-      setMessages(prev => [...prev, botMsg]);
-    }, 1000);
+      let response = "I'm synchronizing with the protocol archives. Could you be more specific? I have detailed data on **Genesis**, **$SHELL token**, and **Base network**.";
+      
+      const lowerInput = messageText.toLowerCase();
+      for (const key in KNOWLEDGE_BASE) {
+        if (lowerInput.includes(key)) {
+          response = KNOWLEDGE_BASE[key];
+          break;
+        }
+      }
+
+      setIsTyping(false);
+      setMessages(prev => [...prev, { role: 'bot', text: response }]);
+    }, 1500);
   };
 
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="h-[70vh] flex flex-col gap-4 text-left">
+    <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="h-[72vh] flex flex-col gap-4 text-left">
       <div className="flex items-center justify-between border-b border-white/5 pb-4 px-1">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-tr from-primary to-secondary rounded-2xl flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.3)]">
@@ -351,22 +374,48 @@ function AiChatView() {
             <h2 className="text-lg font-black italic uppercase text-white leading-none">CLAWDBOT</h2>
             <div className="flex items-center gap-1.5 mt-1">
               <span className="w-1 h-1 bg-base-emerald rounded-full animate-pulse" />
-              <p className="text-[7px] font-black text-secondary uppercase tracking-widest leading-none">AI Protocol Active</p>
+              <p className="text-[7px] font-black text-secondary uppercase tracking-widest leading-none">Quantum Neural Core Active</p>
             </div>
           </div>
         </div>
-        <div className="px-3 py-1 bg-white/5 rounded-lg border border-white/10 text-[7px] font-black text-slate-500 uppercase tracking-widest">v1.0.4-Beta</div>
+        <div className="px-3 py-1 bg-white/5 rounded-lg border border-white/10 text-[7px] font-black text-slate-500 uppercase tracking-widest">v1.2.0-PRO</div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-1 space-y-4 scrollbar-hide">
+      <div className="flex-1 overflow-y-auto px-1 space-y-4 scrollbar-hide pb-4">
         {messages.map((msg, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] p-4 rounded-2xl text-[11px] font-medium leading-relaxed shadow-sm ${msg.role === 'user' ? 'bg-primary text-white rounded-tr-none' : 'bg-white/5 border border-white/10 text-slate-300 rounded-tl-none italic'}`}>
-              {msg.text}
+            <div className={`max-w-[85%] p-4 rounded-2xl text-[11px] font-medium leading-relaxed shadow-sm ${
+              msg.role === 'user' 
+                ? 'bg-primary text-white rounded-tr-none' 
+                : 'bg-white/5 border border-white/10 text-slate-300 rounded-tl-none italic'
+            }`}>
+              <div dangerouslySetInnerHTML={{ __html: msg.text.replace(/\*\*(.*?)\*\*/g, '<b class="text-secondary">$1</b>') }} />
             </div>
           </motion.div>
         ))}
+        {isTyping && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
+            <div className="bg-white/5 border border-white/10 p-3 rounded-2xl flex gap-1">
+              <div className="w-1 h-1 bg-primary rounded-full animate-bounce" />
+              <div className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:0.2s]" />
+              <div className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:0.4s]" />
+            </div>
+          </motion.div>
+        )}
         <div ref={messagesEndRef} />
+      </div>
+
+      {/* Quick Suggestions */}
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        {['What is $SHELL?', 'Genesis Utility', 'Base Network'].map((q) => (
+          <button 
+            key={q} 
+            onClick={() => handleSend(q)}
+            className="whitespace-nowrap px-3 py-1.5 bg-white/5 border border-white/5 rounded-lg text-[8px] font-bold text-slate-400 uppercase hover:bg-primary/20 hover:text-white transition-all"
+          >
+            {q}
+          </button>
+        ))}
       </div>
 
       <div className="p-2 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-2 focus-within:border-primary/50 transition-all">
@@ -375,17 +424,12 @@ function AiChatView() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-          placeholder="Ask Clawdbot anything..." 
+          placeholder="Ask Clawdbot about the protocol..." 
           className="flex-1 bg-transparent border-none outline-none px-3 py-2 text-xs placeholder:text-slate-600 italic" 
         />
-        <button onClick={handleSend} className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center hover:bg-secondary transition-all shadow-lg active:scale-90">
+        <button onClick={() => handleSend()} className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center hover:bg-secondary transition-all shadow-lg active:scale-90">
           <Send size={16} className="text-white" />
         </button>
-      </div>
-      
-      <div className="flex items-center justify-center gap-2 opacity-30 py-2">
-        <Sparkles size={10} className="text-secondary" />
-        <p className="text-[7px] font-black uppercase tracking-[0.3em]">Quantum Neural Processing</p>
       </div>
     </motion.div>
   );
