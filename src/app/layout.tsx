@@ -18,6 +18,7 @@ const miniappEmbed = {
   type: "miniapp",
   name: "Ouwibo NFT",
   icon: `${APP_URL}/ouwibo-nft.png`,
+  imageUrl: `${APP_URL}/ouwibo-nft.png`,
   description: "Mint Ouwibo NFT on Base Mainnet gasless.",
   app_url: APP_URL
 };

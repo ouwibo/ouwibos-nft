@@ -1,6 +1,7 @@
 {
   "name": "Ouwibo NFT",
   "description": "Mint Ouwibo NFT on Base Mainnet gasless.",
-  "icon": "/ouwibo-nft.png",
+  "icon": "https://ouwibos-nft.vercel.app/ouwibo-nft.png",
+  "imageUrl": "https://ouwibos-nft.vercel.app/ouwibo-nft.png",
   "app_id": "69a11773dce51e894f97278f"
 }
