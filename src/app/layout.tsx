@@ -13,17 +13,22 @@ const APP_URL = process.env.NEXT_PUBLIC_VERCEL_URL
   ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` 
   : "https://ouwibo-nft.vercel.app";
 
-const miniappEmbed = {
-  version: "1",
-  type: "miniapp",
-  name: "Ouwibo NFT",
-  icon: `${APP_URL}/ouwibo-nft.png`,
+const frameConfig = {
+  version: "next",
   imageUrl: `${APP_URL}/ouwibo-nft.png`,
-  description: "Mint Ouwibo NFT on Base Mainnet gasless.",
-  app_url: APP_URL
+  button: {
+    title: "Launch Ouwibo",
+    action: {
+      type: "launch_frame",
+      name: "Ouwibo NFT",
+      url: APP_URL,
+      splashImageUrl: `${APP_URL}/ouwibo-nft.png`,
+      splashBackgroundColor: "#000000",
+    },
+  },
 };
 
-const stringifiedEmbed = JSON.stringify(miniappEmbed);
+const stringifiedFrame = JSON.stringify(frameConfig);
 
 export const metadata: Metadata = {
   title: 'Ouwibo NFT | Base Mainnet',
@@ -31,16 +36,7 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   other: {
     "base:app_id": "69a11773dce51e894f97278f",
-    "fc:miniapp": stringifiedEmbed,
-    "fc:frame": stringifiedEmbed,
-    "fc:frame:image": `${APP_URL}/ouwibo-nft.png`,
-    "fc:frame:button:1": "🔗 Connect Wallet",
-    "fc:frame:button:1:action": "post",
-    "fc:frame:button:1:target": `${APP_URL}/api/connect`,
-    "fc:frame:button:2": "✨ Mint NFT",
-    "fc:frame:button:2:action": "tx",
-    "fc:frame:button:2:target": `${APP_URL}/api/mint`,
-    "fc:frame:post_url": `${APP_URL}/api/frame-state`,
+    "fc:frame": stringifiedFrame,
   },
 }
 
