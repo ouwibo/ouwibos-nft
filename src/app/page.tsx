@@ -89,38 +89,38 @@ export default function OuwiboBaseApp() {
 
   if (!mounted) return (
     <div className="min-h-screen bg-[#020617] flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+      <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
     </div>
   );
 
   return (
-    <main className="min-h-screen bg-[#020617] text-slate-200 font-sans selection:bg-primary/30 pb-20 overflow-x-hidden max-w-[500px] mx-auto">
+    <main className="min-h-screen bg-[#020617] text-slate-200 font-sans selection:bg-primary/30 pb-16 overflow-hidden max-w-[430px] mx-auto relative touch-manipulation">
       {/* Dynamic Background */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-5%] left-[-5%] w-[50%] h-[50%] bg-purple-900/10 rounded-full blur-[80px] animate-glow-pulse" />
-        <div className="absolute bottom-[-5%] right-[-5%] w-[50%] h-[50%] bg-cyan-900/10 rounded-full blur-[80px] animate-glow-pulse delay-1000" />
+        <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-purple-900/10 rounded-full blur-[60px] animate-glow-pulse" />
+        <div className="absolute bottom-[-5%] right-[-5%] w-[40%] h-[40%] bg-cyan-900/10 rounded-full blur-[60px] animate-glow-pulse delay-1000" />
       </div>
 
       {/* Mini App Optimized Header */}
-      <header className="sticky top-0 z-50 px-4 py-3 backdrop-blur-xl border-b border-white/5 bg-[#020617]/80 flex items-center justify-between">
+      <header className="sticky top-0 z-50 px-3 py-2.5 backdrop-blur-xl border-b border-white/5 bg-[#020617]/80 flex items-center justify-between">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('explore')}>
-          <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center shadow-lg">
-            <Zap className="text-white fill-current" size={16} />
+          <div className="w-7 h-7 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center shadow-lg">
+            <Zap className="text-white fill-current" size={14} />
           </div>
           <div className="text-left">
-            <h1 className="font-black text-sm tracking-tighter text-white leading-none">OUWIBO</h1>
-            <p className="text-[7px] font-black text-secondary uppercase tracking-widest mt-0.5">Base Eco</p>
+            <h1 className="font-black text-xs tracking-tighter text-white leading-none">OUWIBO</h1>
+            <p className="text-[6px] font-black text-secondary uppercase tracking-widest mt-0.5 leading-none">Base Network</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 scale-90 origin-right">
+        <div className="flex items-center gap-2 scale-75 origin-right">
           <ConnectButton 
             client={client} 
             theme="dark" 
             wallets={wallets} 
             chain={base} 
             connectButton={{ 
-              className: "!bg-white !text-black !font-black !px-4 !py-2 !rounded-lg !text-[9px] !uppercase !border-none !transition-all active:!scale-95",
+              className: "!bg-white !text-black !font-black !px-3 !py-1.5 !rounded-lg !text-[8px] !uppercase !border-none",
               label: "Connect"
             }} 
           />
@@ -128,10 +128,10 @@ export default function OuwiboBaseApp() {
       </header>
 
       {/* Optimized Main Container */}
-      <div className="relative z-10 px-4 pt-4 pb-10">
+      <div className="relative z-10 px-3 pt-3 pb-8">
         {error && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-400 text-[10px] font-bold">
-            <AlertCircle size={14} /> {error}
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mb-3 p-2.5 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-2 text-red-400 text-[9px] font-bold">
+            <AlertCircle size={12} /> {error}
           </motion.div>
         )}
 
@@ -144,20 +144,20 @@ export default function OuwiboBaseApp() {
       </div>
 
       {/* Mini App Bottom Bar */}
-      <nav className="fixed bottom-4 left-4 right-4 z-50 bg-[#020617]/90 backdrop-blur-2xl border border-white/10 p-1.5 rounded-2xl flex items-center justify-around shadow-2xl">
+      <nav className="fixed bottom-3 left-3 right-3 z-50 bg-black/60 backdrop-blur-2xl border border-white/10 p-1 rounded-2xl flex items-center justify-around shadow-2xl">
         {[
-          { id: 'explore', icon: LayoutGrid, label: 'Items' },
+          { id: 'explore', icon: LayoutGrid, label: 'Explore' },
           { id: 'mint', icon: Zap, label: 'Mint' },
           { id: 'profile', icon: User, label: 'Wallet' },
-          { id: 'roadmap', icon: Map, label: 'Path' },
+          { id: 'roadmap', icon: Map, label: 'Road' },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as Tab)}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-300 ${activeTab === tab.id ? 'bg-primary text-white shadow-lg' : 'text-slate-500'}`}
+            className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-300 ${activeTab === tab.id ? 'bg-primary text-white scale-105' : 'text-slate-500'}`}
           >
-            <tab.icon size={16} strokeWidth={activeTab === tab.id ? 3 : 2} />
-            <span className="text-[7px] font-black uppercase tracking-widest">{tab.label}</span>
+            <tab.icon size={14} strokeWidth={activeTab === tab.id ? 3 : 2} />
+            <span className="text-[6px] font-black uppercase tracking-widest">{tab.label}</span>
           </button>
         ))}
       </nav>
@@ -165,7 +165,7 @@ export default function OuwiboBaseApp() {
   );
 }
 
-// --- Compact View Components ---
+// --- View Overrides for extreme mobile optimization ---
 
 function NFTCard({ item, onClick }: { item: any, onClick: (id: bigint) => void }) {
   return (
@@ -195,26 +195,21 @@ function NFTCard({ item, onClick }: { item: any, onClick: (id: bigint) => void }
 
 function ExploreView({ onNftClick }: any) {
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 text-left">
-      <section className="space-y-4 pt-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-lg">
-          <div className="w-1 h-1 bg-primary rounded-full animate-pulse" />
-          <span className="text-[7px] font-black text-primary uppercase tracking-[0.2em]">Protocol v2.0 Live</span>
+    <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 text-left">
+      <section className="space-y-2 pt-1">
+        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 border border-primary/20 rounded-md">
+          <span className="text-[6px] font-black text-primary uppercase tracking-widest">Protocol v2.0 Active</span>
         </div>
-        <h1 className="text-4xl font-black italic tracking-tighter text-white leading-none uppercase">
+        <h1 className="text-3xl font-black italic tracking-tighter text-white leading-none uppercase">
           Atlantis <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Archives.</span>
         </h1>
-        <p className="text-slate-400 text-xs font-medium italic leading-relaxed">
-          Temukan koleksi artefak digital eksklusif Ouwibo di jaringan Base.
+        <p className="text-slate-400 text-[10px] font-medium italic leading-tight">
+          Koleksi digital eksklusif Ouwibo di Base.
         </p>
       </section>
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between border-b border-white/5 pb-2">
-          <h2 className="text-sm font-black italic uppercase tracking-widest text-white">Market Grid</h2>
-          <p className="text-slate-500 text-[8px] font-bold uppercase tracking-widest">{NFT_COLLECTION.length} Items</p>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
+      <section className="space-y-3">
+        <div className="grid grid-cols-2 gap-2.5">
           {NFT_COLLECTION.map((nft) => (
             <NFTCard key={nft.id.toString()} item={nft} onClick={onNftClick} />
           ))}
@@ -226,76 +221,76 @@ function ExploreView({ onNftClick }: any) {
 
 function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash, totalSupply, loadingSupply, account, setError, shareToWarpcast, nft }: any) {
   return (
-    <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pt-2 text-left pb-10">
-      <div className="relative aspect-square w-full max-w-[280px] mx-auto bg-[#0f172a] rounded-3xl overflow-hidden border border-white/5 shadow-2xl">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 pt-1 text-left pb-8">
+      <div className="relative aspect-square w-full max-w-[240px] mx-auto bg-[#0f172a] rounded-2xl overflow-hidden border border-white/5 shadow-xl">
         <Image src={nft.image} alt="NFT" fill className="object-cover" priority />
         <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-60" />
-        <div className="absolute bottom-4 left-4 right-4">
-          <p className="text-primary text-[8px] font-black uppercase tracking-[0.3em] mb-1">Series: {nft.tier}</p>
-          <h2 className="text-xl font-black italic uppercase text-white leading-none truncate">{nft.name}</h2>
+        <div className="absolute bottom-3 left-3 right-3 text-left">
+          <p className="text-primary text-[6px] font-black uppercase tracking-widest mb-0.5 leading-none">Series: {nft.tier}</p>
+          <h2 className="text-lg font-black italic uppercase text-white leading-none truncate">{nft.name}</h2>
         </div>
       </div>
 
-      <div className="bg-[#0f172a]/40 backdrop-blur-3xl border border-white/5 rounded-2xl p-5 space-y-5 shadow-xl">
-        <div className="flex justify-between items-center border-b border-white/5 pb-4">
+      <div className="bg-[#0f172a]/40 backdrop-blur-3xl border border-white/5 rounded-2xl p-4 space-y-4">
+        <div className="flex justify-between items-center border-b border-white/5 pb-3">
           <div className="text-left">
-            <p className="text-[7px] font-black text-slate-500 uppercase tracking-widest italic mb-1">Minting Cost</p>
-            <p className="text-lg font-black italic text-base-emerald uppercase tracking-tighter leading-none">Free Gasless</p>
+            <p className="text-[6px] font-black text-slate-500 uppercase tracking-widest mb-0.5 leading-none">Price</p>
+            <p className="text-sm font-black italic text-base-emerald uppercase leading-none">Free Gasless</p>
           </div>
           <div className="text-right">
-            <p className="text-[7px] font-black text-slate-500 uppercase tracking-widest italic mb-1">Available</p>
-            <p className="text-lg font-black italic text-white tracking-tighter font-mono leading-none">
-              {loadingSupply ? '...' : (totalSupply?.toString() || '0')} <span className="text-[10px] text-slate-600">/ {nft.supply}</span>
+            <p className="text-[6px] font-black text-slate-500 uppercase tracking-widest mb-0.5 leading-none">Available</p>
+            <p className="text-sm font-black italic text-white tracking-tighter leading-none font-mono">
+              {loadingSupply ? '..' : (totalSupply?.toString() || '0')} / {nft.supply}
             </p>
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {!minted ? (
             isConnected ? (
               <TransactionButton
                 transaction={() => claimTo({ contract, to: account!.address, tokenId: nft.id, quantity: 1n })}
                 onTransactionConfirmed={(r) => { setMinted(true); setTxHash(r.transactionHash); }}
                 onError={(e) => setError(e.message)}
-                className="!w-full !bg-gradient-to-r !from-primary !to-indigo-600 !text-white !font-black !py-4 !rounded-xl !text-xs !uppercase !shadow-lg !border-none transition-all active:scale-95"
+                className="!w-full !bg-gradient-to-r !from-primary !to-indigo-600 !text-white !font-black !py-3.5 !rounded-xl !text-[10px] !uppercase !shadow-lg !border-none active:scale-95 transition-all"
               >
                 CONFIRM MINT (#{nft.id.toString()})
               </TransactionButton>
             ) : (
-              <div className="p-6 border border-dashed border-white/10 rounded-xl text-center space-y-3">
-                <Wallet className="mx-auto text-slate-600" size={24} />
-                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest italic">Connect to start</p>
+              <div className="p-4 border border-dashed border-white/10 rounded-xl text-center space-y-2">
+                <Wallet className="mx-auto text-slate-600" size={18} />
+                <p className="text-[7px] font-black text-slate-500 uppercase tracking-widest italic leading-none">Connect wallet to start</p>
               </div>
             )
           ) : (
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-3">
-              <div className="bg-base-emerald/10 border border-base-emerald/20 p-4 rounded-xl flex items-center gap-4">
-                <div className="w-10 h-10 bg-base-emerald rounded-lg flex items-center justify-center shadow-lg">
-                  <CheckCircle2 size={24} className="text-black" />
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="space-y-2.5">
+              <div className="bg-base-emerald/10 border border-base-emerald/20 p-3 rounded-xl flex items-center gap-3">
+                <div className="w-8 h-8 bg-base-emerald rounded-lg flex items-center justify-center">
+                  <CheckCircle2 size={18} className="text-black" />
                 </div>
                 <div className="text-left">
-                  <h4 className="text-xs font-black italic uppercase text-white leading-none mb-1">Asset Secured.</h4>
-                  <a href={`https://basescan.org/tx/${txHash}`} target="_blank" className="text-[7px] font-bold text-secondary uppercase tracking-widest hover:underline">Receipt ↗</a>
+                  <h4 className="text-[10px] font-black uppercase text-white leading-none">Secured</h4>
+                  <a href={`https://basescan.org/tx/${txHash}`} target="_blank" className="text-[6px] font-bold text-secondary uppercase hover:underline">Receipt ↗</a>
                 </div>
               </div>
-              <button onClick={shareToWarpcast} className="w-full bg-white text-black font-black py-4 rounded-xl text-[9px] uppercase tracking-widest hover:bg-secondary hover:text-white transition-all">
-                Share Voyager Status
+              <button onClick={shareToWarpcast} className="w-full bg-white text-black font-black py-3 rounded-xl text-[8px] uppercase tracking-widest transition-all">
+                Share Achievement
               </button>
             </motion.div>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-4 gap-1.5 px-1">
         {[
-          { l: 'Network', v: 'Base' },
-          { l: 'Standard', v: '1155' },
-          { l: 'Asset ID', v: `#${nft.id.toString()}` },
-          { l: 'Access', v: 'Genesis' },
+          { l: 'Net', v: 'Base' },
+          { l: 'Std', v: '1155' },
+          { l: 'ID', v: `#${nft.id.toString()}` },
+          { l: 'Lvl', v: 'Gen' },
         ].map(item => (
-          <div key={item.l} className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col items-center gap-0.5">
-            <p className="text-[6px] font-black text-slate-500 uppercase">{item.l}</p>
-            <p className="text-[8px] font-black italic text-white uppercase">{item.v}</p>
+          <div key={item.l} className="bg-white/5 border border-white/5 p-2 rounded-lg flex flex-col items-center">
+            <p className="text-[5px] font-black text-slate-500 uppercase leading-none mb-0.5">{item.l}</p>
+            <p className="text-[7px] font-black text-white uppercase leading-none italic">{item.v}</p>
           </div>
         ))}
       </div>
@@ -328,7 +323,7 @@ function ProfileView({ account, contract }: any) {
         <p className="text-[8px] font-black text-secondary uppercase tracking-[0.3em] italic">Identity Verified</p>
       </div>
 
-      <div className="px-6 space-y-4">
+      <div className="px-6 space-y-4 text-left">
         <div className="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
@@ -350,7 +345,7 @@ function ProfileView({ account, contract }: any) {
               { l: 'Protocol', v: 'v2.0 Beta', c: 'text-secondary' },
               { l: 'Loyalty', v: 'Voyager', c: 'text-white' },
             ].map(s => (
-              <div key={s.l} className="flex justify-between items-center">
+              <div key={s.l} className="flex justify-between items-center text-left">
                 <span className="text-[8px] font-bold uppercase text-slate-500 tracking-widest">{s.l}</span>
                 <span className={`text-[8px] font-black uppercase ${s.c}`}>{s.v}</span>
               </div>

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import { Providers } from '@/components/Providers'
 import './globals.css'
@@ -8,6 +8,13 @@ const inter = Inter({
   display: 'swap',
   variable: '--font-inter',
 })
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+}
 
 const APP_URL = process.env.NEXT_PUBLIC_VERCEL_URL 
   ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` 
