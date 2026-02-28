@@ -19,7 +19,7 @@ const miniAppConfig = {
   button: {
     title: "Launch Ouwibo",
     action: {
-      type: "launch_miniapp",
+      type: "launch_frame",
       name: "OUWIBO NFT",
       url: APP_URL,
       splashImageUrl: `${APP_URL}/ouwibo-nft.png`,
