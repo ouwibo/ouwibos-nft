@@ -29,8 +29,8 @@ const miniAppConfig = {
       type: "launch_frame",
       name: "OUWIBO GENESIS",
       url: APP_URL,
-      splashImageUrl: `${APP_URL}/ouwibo-nft.png`,
-      splashBackgroundColor: "#000000",
+      splashImageUrl: `${APP_URL}/loading.svg`,
+      splashBackgroundColor: "#020617",
     },
   },
 };
