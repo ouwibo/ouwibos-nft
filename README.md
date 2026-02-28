@@ -1,55 +1,42 @@
-# 🚀 Ouwibo-NFT Premium Minter
+# OUWIBO NFT Protocol
 
-A premium Farcaster Frame and Miniapp for minting exclusive Genesis Ouwibo-NFTs on **Base Mainnet**. Built with Next.js 15, Tailwind CSS, and Thirdweb SDK v5.
+OUWIBO is a next-generation NFT infrastructure and digital asset ecosystem built natively on the Base network. Designed for the Farcaster community, the protocol provides secure, gasless, and high-performance minting experiences for exclusive digital artifacts.
 
-## ✨ Features
+## Project Vision
 
-- **Premium UI/UX:** High-end "Base One" Amber & Emerald theme with cinematic animations and glassmorphism.
-- **Farcaster Native:** Fully compatible with Farcaster Frames and Miniapps spec.
-- **Base Mainnet:** Optimized for the Base ecosystem with official `base:app_id`.
-- **Advanced Wallet Flow:** Integrated connection for Coinbase Wallet, MetaMask, and Farcaster Auth.
-- **Viral Loop:** Built-in "Share to Feed" feature for community growth.
+The OUWIBO ecosystem aims to bridge the gap between social identity and on-chain utility. By leveraging the Base network's scalability and Farcaster's social layer, we provide a foundation for decentralized governance, exclusive community access, and long-term asset value.
 
-## 🛠 Tech Stack
+## Core Asset Collections
 
-- **Framework:** Next.js 15 (App Router)
-- **Styling:** Tailwind CSS + Framer Motion
-- **Web3:** Thirdweb SDK v5
-- **Network:** Base Mainnet (Chain ID: 8453)
+### 1. Ouwibo Genesis (ID #0)
+*   **Tier:** Legendary
+*   **Utility:** The ultimate access pass to the Ouwibo ecosystem. Holders receive primary governance rights, $SHELL token allocations, and priority access to infrastructure nodes.
 
-## 🚀 Getting Started
+### 2. Ouwibo Voyager (ID #1)
+*   **Tier:** Epic
+*   **Utility:** Designed for early explorers of the Base ecosystem. Unlocks advanced trading features, marketplace fee discounts, and Phase 2 airdrop priority.
 
-### Prerequisites
+### 3. Ouwibo Citizen (ID #2)
+*   **Tier:** Rare
+*   **Utility:** The foundational identity pass for the OUWIBO community. Grants access to gated Farcaster channels and basic eligibility for ecosystem loyalty programs.
 
-- Node.js 18+
-- npm or yarn
+## Technical Architecture
 
-### Installation
+*   **Network:** Base Mainnet (Layer 2)
+*   **Contract Standard:** ERC-1155 (Multi-token Standard)
+*   **Framework:** Next.js 15 with App Router
+*   **Web3 Integration:** Thirdweb SDK v5 & Farcaster Frame SDK v2
+*   **Styling:** Custom "Atlantis Cyber-Core" Design System via Tailwind CSS
 
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Copy `.env.example` to `.env` and fill in your credentials:
-   ```env
-   NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your_client_id
-   THIRDWEB_SECRET_KEY=your_secret_key
-   NEXT_PUBLIC_CONTRACT_ADDRESS=0x3525fDbC54DC01121C8e12C3948187E6153Cdf25
-   ```
-4. Run the development server:
-   ```bash
-   npm run dev
-   ```
+## Deployment and Integration
 
-## 🌐 Deployment
+The protocol is optimized for integration within Farcaster Mini-apps and the Coinbase Base App. It utilizes verified account associations and manifest-compliant metadata to ensure seamless cross-platform functionality.
 
-Deploy easily to Vercel:
+## Roadmap 2026
 
-1. Push your code to GitHub.
-2. Connect your repository to Vercel.
-3. Add your Environment Variables in the Vercel dashboard.
-4. Set `NEXT_PUBLIC_APP_URL` to your production domain.
+*   **Phase 01:** Genesis Deployment and Global Synchronization.
+*   **Phase 02:** $SHELL Governance Token Distribution and Snapshot.
+*   **Phase 03:** Transition to Atlantis Social DAO structure.
 
 ---
-Powered by **Thirdweb** & **Base**.
+© 2026 OUWIBO Protocol. Built on Base.
