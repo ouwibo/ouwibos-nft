@@ -13,15 +13,16 @@ export async function POST(req: Request) {
     }
 
     // Return next frame with Connect success or logic
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
     const successFrame = `
       <!DOCTYPE html>
       <html>
         <head>
           <meta property="fc:frame" content="vNext" />
-          <meta property="fc:frame:image" content="${process.env.NEXT_PUBLIC_VERCEL_URL}/connected-image.png" />
+          <meta property="fc:frame:image" content="${baseUrl}/connected-image.png" />
           <meta property="fc:frame:button:1" content="✨ Mint Ouwibo-NFT" />
           <meta property="fc:frame:button:1:action" content="tx" />
-          <meta property="fc:frame:button:1:target" content="${process.env.NEXT_PUBLIC_VERCEL_URL}/api/mint" />
+          <meta property="fc:frame:button:1:target" content="${baseUrl}/api/mint" />
         </head>
       </html>
     `;

@@ -1,4 +1,4 @@
-import { createThirdwebClient, getContract } from "thirdweb";
+import { createThirdwebClient, getContract, sendTransaction } from "thirdweb";
 import { base } from "thirdweb/chains";
 import { claimTo } from "thirdweb/extensions/erc1155";
 import { privateKeyToAccount } from "thirdweb/wallets";
@@ -14,21 +14,19 @@ export async function POST(request: Request) {
       return Response.json({ error: 'No wallet address provided' }, { status: 400 });
     }
 
-    // Initialize Thirdweb Client with Secret Key
+    // Initialize Thirdweb Client
     const client = createThirdwebClient({
       secretKey: process.env.THIRDWEB_SECRET_KEY!,
     });
 
-    // Initialize your contract
+    // Initialize contract
     const contract = getContract({
       client,
       chain: base,
       address: "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25",
     });
 
-    // Initialize Backend Wallet Account
-    // WARNING: Ensure you have ETH on Base Mainnet in this wallet
-    // It is recommended to use a Private Key for server-side signing
+    // Initialize Backend Wallet if needed for gasless sponsorship
     if (!process.env.BACKEND_PRIVATE_KEY) {
         return Response.json({ error: 'Server configuration error: Missing private key' }, { status: 500 });
     }
@@ -38,7 +36,7 @@ export async function POST(request: Request) {
       privateKey: process.env.BACKEND_PRIVATE_KEY,
     });
 
-    // Execute Claim Transaction (Gasless for user, paid by your backend wallet)
+    // Execute Claim
     const transaction = claimTo({
       contract,
       to: userAddress,
@@ -46,7 +44,10 @@ export async function POST(request: Request) {
       quantity: 1n,
     });
 
-    const { transactionHash } = await transaction.sendBatch({ account });
+    const { transactionHash } = await sendTransaction({
+      transaction,
+      account,
+    });
 
     return Response.json({
       success: true,
@@ -59,7 +60,6 @@ export async function POST(request: Request) {
     console.error('SDK Minting Error:', error);
     return Response.json({ 
       error: error.message || 'Minting failed',
-      details: error.toString()
     }, { status: 500 });
   }
 }
