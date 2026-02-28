@@ -179,8 +179,8 @@ function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash,
                 <p className="font-black text-lg">FREE <span className="text-white/40 text-xs">GASLESS</span></p>
              </div>
              <div className="text-right">
-                <p className="text-white/40 text-[10px] uppercase font-bold">Supply</p>
-                <p className="font-black text-lg italic">1240 / 6,969</p>
+                <p className="text-white/40 text-[10px] uppercase font-bold">Max Mint</p>
+                <p className="font-black text-lg italic text-base-amber">1 Per Wallet</p>
              </div>
           </div>
         </div>
@@ -204,7 +204,7 @@ function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash,
            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                  <Users size={16} className="text-white/40" />
-                 <span className="text-xs text-white/40 font-bold">Ownership Verifed</span>
+                 <span className="text-xs text-white/40 font-bold">1/1 Claim Limit</span>
               </div>
               <ShieldCheck size={16} className="text-opensea-blue" />
            </div>
@@ -216,7 +216,7 @@ function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash,
                  onTransactionConfirmed={( receipt ) => { setMinted(true); setTxHash(receipt.transactionHash); setMintCount((p: any) => p + 1); }}
                  className="!w-full !bg-opensea-blue hover:!bg-opensea-dark !text-white !font-black !py-6 !rounded-xl !text-lg !uppercase !shadow-xl !border-none active:!scale-95 transition-all"
                >
-                 MINT GENESIS PASS
+                 MINT GENESIS PASS (MAX 1)
                </TransactionButton>
              ) : (
                <div className="p-4 bg-white/5 rounded-xl border border-dashed border-white/10 text-center">
@@ -228,7 +228,7 @@ function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash,
                 <div className="bg-base-emerald/10 border border-base-emerald/20 p-4 rounded-xl flex items-center gap-3">
                    <CheckCircle2 size={24} className="text-base-emerald" />
                    <div>
-                      <p className="text-xs font-black uppercase">Mint Successful!</p>
+                      <p className="text-xs font-black uppercase">You have claimed your 1 NFT</p>
                       <a href={`https://basescan.org/tx/${txHash}`} target="_blank" className="text-[10px] text-white/40 underline">View Transaction</a>
                    </div>
                 </div>
