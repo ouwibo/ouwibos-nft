@@ -33,13 +33,10 @@ export default function OuwiboBaseApp() {
   const [mintCount, setMintCount] = useState(1240);
   const [txHash, setTxHash] = useState<string | null>(null);
   
-  const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    setMounted(true);
-    
     const init = async () => {
       try {
-        // Step 1: Initialize the SDK (Mandatory for some versions)
+        // Step 1: Initialize the SDK
         // Step 2: Signal that the app is ready to hide the splash screen
         await sdk.actions.ready();
         console.log("Farcaster SDK: ready() called successfully");
@@ -49,6 +46,7 @@ export default function OuwiboBaseApp() {
     };
 
     init();
+    setMounted(true);
   }, []);
 
   // Initialize Contract
