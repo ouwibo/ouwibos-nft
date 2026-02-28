@@ -12,6 +12,7 @@
     "@coinbase/onchainkit": "^1.1.2",
     "@farcaster/frame-sdk": "^0.1.14",
     "@neynar/nodejs-sdk": "^1.71.0",
+    "@rainbow-me/rainbowkit": "^2.2.10",
     "@tanstack/react-query": "^5.90.21",
     "@thirdweb-dev/sdk": "^4.0.51",
     "clsx": "^2.1.1",

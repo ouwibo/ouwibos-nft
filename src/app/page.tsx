@@ -113,7 +113,7 @@ export default function OuwiboBaseApp() {
           <div className="w-7 h-7 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center shadow-lg">
             <Zap className="text-white fill-current" size={14} />
           </div>
-          <div className="text-left">
+          <div className="text-left text-left">
             <h1 className="font-black text-xs tracking-tighter text-white leading-none">OUWIBO</h1>
             <p className="text-[6px] font-black text-secondary uppercase tracking-widest mt-0.5 leading-none">Base Network</p>
           </div>
@@ -292,7 +292,7 @@ function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash,
           ) : (
             <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="space-y-2.5">
               <div className="bg-base-emerald/10 border border-base-emerald/20 p-3 rounded-xl flex items-center gap-3 text-left">
-                <div className="w-8 h-8 bg-base-emerald rounded-lg flex items-center justify-center shadow-lg">
+                <div className="w-8 h-8 bg-base-emerald rounded-lg flex items-center justify-center">
                   <CheckCircle2 size={18} className="text-black" />
                 </div>
                 <div className="text-left text-left text-left">
