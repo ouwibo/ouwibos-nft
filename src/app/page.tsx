@@ -36,8 +36,20 @@ export default function OuwiboBaseApp() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
-    // Notify Farcaster that the mini-app is ready to be displayed
-    sdk.actions.ready();
+    
+    const initSdk = async () => {
+      try {
+        // Notify Farcaster that the mini-app is ready
+        await sdk.actions.ready();
+        console.log("Farcaster SDK Ready called");
+      } catch (e) {
+        console.error("Error calling sdk.actions.ready()", e);
+      }
+    };
+
+    // Small delay to ensure everything is rendered
+    const timer = setTimeout(initSdk, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   // Initialize Contract
