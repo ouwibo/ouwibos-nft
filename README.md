@@ -1,20 +1,55 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# 🚀 Ouwibo-NFT Premium Minter
 
-# Run and deploy your AI Studio app
+A premium Farcaster Frame and Miniapp for minting exclusive Genesis Ouwibo-NFTs on **Base Mainnet**. Built with Next.js 15, Tailwind CSS, and Thirdweb SDK v5.
 
-This contains everything you need to run your app locally.
+## ✨ Features
 
-View your app in AI Studio: https://ai.studio/apps/3b28bec9-2e1d-4e9d-9f47-f07d8da53db4
+- **Premium UI/UX:** High-end "Base One" Amber & Emerald theme with cinematic animations and glassmorphism.
+- **Farcaster Native:** Fully compatible with Farcaster Frames and Miniapps spec.
+- **Base Mainnet:** Optimized for the Base ecosystem with official `base:app_id`.
+- **Advanced Wallet Flow:** Integrated connection for Coinbase Wallet, MetaMask, and Farcaster Auth.
+- **Viral Loop:** Built-in "Share to Feed" feature for community growth.
 
-## Run Locally
+## 🛠 Tech Stack
 
-**Prerequisites:**  Node.js
+- **Framework:** Next.js 15 (App Router)
+- **Styling:** Tailwind CSS + Framer Motion
+- **Web3:** Thirdweb SDK v5
+- **Network:** Base Mainnet (Chain ID: 8453)
 
+## 🚀 Getting Started
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Copy `.env.example` to `.env` and fill in your credentials:
+   ```env
+   NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your_client_id
+   THIRDWEB_SECRET_KEY=your_secret_key
+   NEXT_PUBLIC_CONTRACT_ADDRESS=0x3525fDbC54DC01121C8e12C3948187E6153Cdf25
+   ```
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+## 🌐 Deployment
+
+Deploy easily to Vercel:
+
+1. Push your code to GitHub.
+2. Connect your repository to Vercel.
+3. Add your Environment Variables in the Vercel dashboard.
+4. Set `NEXT_PUBLIC_APP_URL` to your production domain.
+
+---
+Powered by **Thirdweb** & **Base**.
