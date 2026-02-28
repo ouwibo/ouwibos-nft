@@ -27,6 +27,7 @@ const stringifiedEmbed = JSON.stringify(miniappEmbed);
 export const metadata: Metadata = {
   title: 'Ouwibo NFT | Base Mainnet',
   description: 'Mint Ouwibo-NFT eksklusif via Farcaster Frame - Base Mainnet',
+  manifest: '/manifest.json',
   other: {
     "base:app_id": "69a11773dce51e894f97278f",
     "fc:miniapp": stringifiedEmbed,
