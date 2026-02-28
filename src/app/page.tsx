@@ -68,7 +68,6 @@ export default function OuwiboBaseApp() {
 
   const selectedNft = NFT_COLLECTION.find(n => n.id === selectedNftId) || NFT_COLLECTION[0];
 
-  // Real-time Supply Fetching for selected NFT
   const { data: totalSupply, isLoading: loadingSupply } = useReadContract({
     contract,
     method: "function totalSupply(uint256 id) view returns (uint256)",
@@ -85,80 +84,54 @@ export default function OuwiboBaseApp() {
   const handleViewNft = (id: bigint) => {
     setSelectedNftId(id);
     setActiveTab('mint');
-    setMinted(false); // Reset minted state for new selection
+    setMinted(false);
   };
 
   if (!mounted) return (
     <div className="min-h-screen bg-[#020617] flex items-center justify-center">
-      <div className="relative">
-        <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-        <div className="absolute inset-0 bg-primary blur-3xl opacity-20 animate-pulse" />
-      </div>
+      <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
     </div>
   );
 
   return (
-    <main className="min-h-screen bg-[#020617] text-slate-200 font-sans selection:bg-primary/30 pb-20 md:pb-0">
+    <main className="min-h-screen bg-[#020617] text-slate-200 font-sans selection:bg-primary/30 pb-20 overflow-x-hidden max-w-[500px] mx-auto">
       {/* Dynamic Background */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
-        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-purple-900/20 rounded-full blur-[120px] animate-glow-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-cyan-900/20 rounded-full blur-[120px] animate-glow-pulse delay-1000" />
+        <div className="absolute top-[-5%] left-[-5%] w-[50%] h-[50%] bg-purple-900/10 rounded-full blur-[80px] animate-glow-pulse" />
+        <div className="absolute bottom-[-5%] right-[-5%] w-[50%] h-[50%] bg-cyan-900/10 rounded-full blur-[80px] animate-glow-pulse delay-1000" />
       </div>
 
-      {/* Premium Navbar */}
-      <header className="sticky top-0 z-50 px-6 lg:px-12 py-5 backdrop-blur-xl border-b border-white/5 bg-[#020617]/80">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4 group cursor-pointer" onClick={() => setActiveTab('explore')}>
-            <div className="relative w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-primary/40 transition-all duration-500">
-              <Zap className="text-white fill-current" size={24} />
-              <div className="absolute inset-0 bg-white blur-xl opacity-0 group-hover:opacity-30 transition-opacity" />
-            </div>
-            <div className="hidden sm:block text-left">
-              <h1 className="font-black text-2xl tracking-tighter text-white leading-none">OUWIBO</h1>
-              <p className="text-[10px] font-black text-secondary uppercase tracking-[0.3em] mt-1">Base Ecosystem</p>
-            </div>
+      {/* Mini App Optimized Header */}
+      <header className="sticky top-0 z-50 px-4 py-3 backdrop-blur-xl border-b border-white/5 bg-[#020617]/80 flex items-center justify-between">
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('explore')}>
+          <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center shadow-lg">
+            <Zap className="text-white fill-current" size={16} />
           </div>
-
-          <nav className="hidden lg:flex items-center bg-white/5 border border-white/10 rounded-2xl px-2 py-1.5 gap-1">
-            {[
-              { id: 'explore', label: 'Marketplace', icon: LayoutGrid },
-              { id: 'mint', label: 'Launchpad', icon: Zap },
-              { id: 'profile', label: 'Collector', icon: User },
-              { id: 'roadmap', label: 'Ecosystem', icon: Map },
-            ].map((item) => (
-              <button 
-                key={item.id} 
-                onClick={() => setActiveTab(item.id as Tab)}
-                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === item.id ? 'bg-white/10 text-white shadow-inner' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
-              >
-                <item.icon size={14} />
-                {item.label}
-              </button>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-4">
-            <ConnectButton 
-              client={client} 
-              theme="dark" 
-              wallets={wallets} 
-              chain={base} 
-              connectButton={{ 
-                className: "!bg-gradient-to-r !from-primary !to-indigo-600 !text-white !font-black !px-8 !py-3 !rounded-2xl !text-xs !uppercase !shadow-lg !shadow-primary/20 !border-none !transition-all hover:!scale-105 active:!scale-95",
-                label: "Connect Wallet"
-              }} 
-            />
+          <div className="text-left">
+            <h1 className="font-black text-sm tracking-tighter text-white leading-none">OUWIBO</h1>
+            <p className="text-[7px] font-black text-secondary uppercase tracking-widest mt-0.5">Base Eco</p>
           </div>
+        </div>
+
+        <div className="flex items-center gap-2 scale-90 origin-right">
+          <ConnectButton 
+            client={client} 
+            theme="dark" 
+            wallets={wallets} 
+            chain={base} 
+            connectButton={{ 
+              className: "!bg-white !text-black !font-black !px-4 !py-2 !rounded-lg !text-[9px] !uppercase !border-none !transition-all active:!scale-95",
+              label: "Connect"
+            }} 
+          />
         </div>
       </header>
 
-      {/* Main Container */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-12 text-left">
+      {/* Optimized Main Container */}
+      <div className="relative z-10 px-4 pt-4 pb-10">
         {error && (
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="mb-8 p-5 bg-red-500/10 border border-red-500/20 rounded-3xl flex items-center gap-4 text-red-400 text-sm font-bold backdrop-blur-md">
-            <AlertCircle size={20} /> {error}
-            <button onClick={() => setError(null)} className="ml-auto p-2 hover:bg-white/5 rounded-xl transition-colors">✕</button>
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-400 text-[10px] font-bold">
+            <AlertCircle size={14} /> {error}
           </motion.div>
         )}
 
@@ -170,20 +143,21 @@ export default function OuwiboBaseApp() {
         </AnimatePresence>
       </div>
 
-      {/* Mobile Nav */}
-      <nav className="lg:hidden fixed bottom-6 left-6 right-6 z-50 bg-[#020617]/80 backdrop-blur-3xl border border-white/10 p-2.5 rounded-[32px] flex items-center justify-around shadow-2xl">
+      {/* Mini App Bottom Bar */}
+      <nav className="fixed bottom-4 left-4 right-4 z-50 bg-[#020617]/90 backdrop-blur-2xl border border-white/10 p-1.5 rounded-2xl flex items-center justify-around shadow-2xl">
         {[
-          { id: 'explore', icon: LayoutGrid },
-          { id: 'mint', icon: Zap },
-          { id: 'profile', icon: User },
-          { id: 'roadmap', icon: Map },
+          { id: 'explore', icon: LayoutGrid, label: 'Items' },
+          { id: 'mint', icon: Zap, label: 'Mint' },
+          { id: 'profile', icon: User, label: 'Wallet' },
+          { id: 'roadmap', icon: Map, label: 'Path' },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as Tab)}
-            className={`p-4 rounded-2xl transition-all duration-500 ${activeTab === tab.id ? 'bg-primary text-white shadow-neon-purple scale-110' : 'text-slate-500 hover:text-slate-300'}`}
+            className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-300 ${activeTab === tab.id ? 'bg-primary text-white shadow-lg' : 'text-slate-500'}`}
           >
-            <tab.icon size={22} strokeWidth={activeTab === tab.id ? 3 : 2} />
+            <tab.icon size={16} strokeWidth={activeTab === tab.id ? 3 : 2} />
+            <span className="text-[7px] font-black uppercase tracking-widest">{tab.label}</span>
           </button>
         ))}
       </nav>
@@ -191,41 +165,28 @@ export default function OuwiboBaseApp() {
   );
 }
 
-// --- Component Atoms & Organisms ---
+// --- Compact View Components ---
 
 function NFTCard({ item, onClick }: { item: any, onClick: (id: bigint) => void }) {
   return (
     <motion.div 
-      whileHover={{ y: -8 }}
-      className="group relative bg-[#0f172a]/40 backdrop-blur-xl border border-white/5 rounded-[32px] overflow-hidden transition-all duration-500 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20"
+      whileTap={{ scale: 0.98 }}
+      className="group relative bg-[#0f172a]/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden transition-all duration-300 active:border-primary/50"
     >
       <div className="relative aspect-square overflow-hidden">
-        <Image src={item.image} alt={item.name} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
-        <div className="absolute top-4 left-4 flex gap-2">
-          <span className="px-3 py-1 bg-black/60 backdrop-blur-md rounded-xl text-[8px] font-black text-secondary uppercase tracking-widest border border-white/5">{item.tier}</span>
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-6">
-          <button onClick={() => onClick(item.id)} className="w-full bg-white text-black font-black py-3 rounded-2xl text-[10px] uppercase tracking-widest transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 shadow-xl">
-            Mint Asset
-          </button>
-        </div>
+        <Image src={item.image} alt={item.name} fill className="object-cover" />
+        <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md rounded-md text-[6px] font-black text-secondary uppercase tracking-widest">#{item.id.toString()}</div>
       </div>
-      <div className="p-6 space-y-4 text-left">
+      <div className="p-3 space-y-2 text-left">
         <div>
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 flex items-center gap-1.5">
-            <Tag size={10} /> Ouwibo Protocol
-          </p>
-          <h4 className="text-xl font-black italic uppercase text-white truncate group-hover:text-primary transition-colors">{item.name}</h4>
+          <p className="text-[7px] font-black text-slate-500 uppercase tracking-widest mb-0.5 leading-none">{item.tier}</p>
+          <h4 className="text-xs font-black italic uppercase text-white truncate">{item.name}</h4>
         </div>
-        <div className="flex justify-between items-end pt-4 border-t border-white/5">
-          <div>
-            <p className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter">Mint Price</p>
-            <p className="text-lg font-black text-secondary italic">FREE <span className="text-[10px] text-slate-600 font-bold ml-1">GASLESS</span></p>
-          </div>
-          <div className="text-right">
-            <p className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter">ID</p>
-            <p className="text-xs font-black text-white/40 uppercase italic">#{item.id.toString()}</p>
-          </div>
+        <div className="flex justify-between items-center pt-2 border-t border-white/5">
+          <p className="text-[9px] font-black text-secondary italic leading-none">FREE</p>
+          <button onClick={() => onClick(item.id)} className="bg-white/5 hover:bg-white/10 px-3 py-1 rounded-md text-[7px] font-black uppercase tracking-widest transition-all">
+            Open
+          </button>
         </div>
       </div>
     </motion.div>
@@ -234,70 +195,26 @@ function NFTCard({ item, onClick }: { item: any, onClick: (id: bigint) => void }
 
 function ExploreView({ onNftClick }: any) {
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-20">
-      {/* Premium Hero */}
-      <section className="relative flex flex-col lg:flex-row items-center gap-16 py-10 lg:py-20">
-        <div className="flex-1 space-y-8 text-center lg:text-left">
-          <div className="inline-flex items-center gap-3 px-5 py-2 bg-primary/10 border border-primary/20 rounded-2xl">
-            <div className="w-2 h-2 bg-primary rounded-full animate-pulse shadow-[0_0_10px_#8B5CF6]" />
-            <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Protocol v2.0 Live on Base</span>
-          </div>
-          <h1 className="text-7xl lg:text-9xl font-black italic tracking-tighter text-white leading-[0.8] uppercase text-left">
-            Atlantis <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Archives.</span>
-          </h1>
-          <p className="text-slate-400 text-lg lg:text-2xl font-medium italic max-w-xl mx-auto lg:mx-0 leading-relaxed text-left">
-            Temukan koleksi artefak digital eksklusif Ouwibo. Setiap pass membuka level akses berbeda di jaringan Base.
-          </p>
-          <div className="flex flex-wrap justify-center lg:justify-start gap-5">
-            <button onClick={() => onNftClick(0n)} className="bg-white text-black font-black px-12 py-6 rounded-[24px] text-sm uppercase tracking-widest hover:bg-primary hover:text-white transition-all transform hover:scale-105 shadow-2xl shadow-white/5">
-              Mint Genesis
-            </button>
-          </div>
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 text-left">
+      <section className="space-y-4 pt-2">
+        <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-lg">
+          <div className="w-1 h-1 bg-primary rounded-full animate-pulse" />
+          <span className="text-[7px] font-black text-primary uppercase tracking-[0.2em]">Protocol v2.0 Live</span>
         </div>
-
-        <div className="flex-1 relative group">
-          <div className="absolute -inset-10 bg-primary/20 rounded-full blur-[100px] animate-glow-pulse" />
-          <motion.div 
-            animate={{ y: [0, -20, 0], rotate: [0, 2, 0] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            className="relative aspect-[4/5] w-full max-w-md mx-auto bg-[#0f172a] rounded-[56px] border-2 border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]"
-          >
-            <Image src="/ouwibo-nft.png" alt="Feature" fill className="object-cover" priority />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-80" />
-            <div className="absolute bottom-12 left-12 right-12 flex justify-between items-end">
-              <div className="text-left">
-                <p className="text-secondary text-[10px] font-black uppercase tracking-[0.4em] mb-2">Featured Series</p>
-                <h3 className="text-4xl font-black italic uppercase text-white tracking-tighter leading-none">Archives v1</h3>
-              </div>
-              <div className="w-14 h-14 bg-white/10 backdrop-blur-2xl rounded-2xl flex items-center justify-center border border-white/10 shadow-inner">
-                <ArrowUpRight className="text-white" size={24} />
-              </div>
-            </div>
-          </motion.div>
-        </div>
+        <h1 className="text-4xl font-black italic tracking-tighter text-white leading-none uppercase">
+          Atlantis <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Archives.</span>
+        </h1>
+        <p className="text-slate-400 text-xs font-medium italic leading-relaxed">
+          Temukan koleksi artefak digital eksklusif Ouwibo di jaringan Base.
+        </p>
       </section>
 
-      {/* Dynamic Grid */}
-      <section className="space-y-12">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 text-left">
-          <div className="space-y-2">
-            <h2 className="text-4xl lg:text-5xl font-black italic uppercase tracking-tighter text-white">Archives Grid</h2>
-            <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.2em] flex items-center gap-2">
-              <span className="w-1 h-1 bg-primary rounded-full" /> {NFT_COLLECTION.length} Artifacts Discovered
-            </p>
-          </div>
-          <div className="flex bg-white/5 border border-white/10 p-1.5 rounded-2xl backdrop-blur-md">
-            <div className="flex items-center px-4 gap-2 border-r border-white/5">
-              <Search size={14} className="text-slate-500" />
-              <input type="text" placeholder="Search archives..." className="bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest w-32" />
-            </div>
-            <button className="flex items-center gap-2 px-6 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
-              <Filter size={14} /> Filter Assets
-            </button>
-          </div>
+      <section className="space-y-4">
+        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+          <h2 className="text-sm font-black italic uppercase tracking-widest text-white">Market Grid</h2>
+          <p className="text-slate-500 text-[8px] font-bold uppercase tracking-widest">{NFT_COLLECTION.length} Items</p>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8">
+        <div className="grid grid-cols-2 gap-3">
           {NFT_COLLECTION.map((nft) => (
             <NFTCard key={nft.id.toString()} item={nft} onClick={onNftClick} />
           ))}
@@ -309,104 +226,78 @@ function ExploreView({ onNftClick }: any) {
 
 function MintView({ contract, isConnected, minted, setMinted, setTxHash, txHash, totalSupply, loadingSupply, account, setError, shareToWarpcast, nft }: any) {
   return (
-    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="grid lg:grid-cols-12 gap-20 items-start py-10 text-left">
-      <div className="lg:col-span-5 space-y-10 lg:sticky lg:top-36">
-        <div className="relative aspect-[4/5] bg-[#0f172a] rounded-[64px] overflow-hidden border-2 border-white/5 shadow-[0_0_60px_rgba(0,0,0,0.6)] group">
-          <Image src={nft.image} alt={nft.name} fill className="object-cover transition-transform duration-[4s] group-hover:scale-110" priority />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent" />
-          <div className="absolute top-8 left-8 flex items-center gap-3 px-4 py-2 bg-black/60 backdrop-blur-xl rounded-2xl border border-white/10">
-            <span className="w-2 h-2 bg-base-emerald rounded-full animate-ping" />
-            <p className="text-[10px] font-black text-white uppercase tracking-widest">Live Terminal</p>
-          </div>
-          <div className="absolute bottom-12 left-12 right-12 text-left">
-            <p className="text-primary text-xs font-black uppercase tracking-[0.5em] mb-3 leading-none">Tier: {nft.tier}</p>
-            <h2 className="text-6xl font-black italic tracking-tighter uppercase text-white leading-none truncate">{nft.name}</h2>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          {[
-            { l: 'Network', v: 'Base Mainnet', i: Globe },
-            { l: 'Standard', v: 'ERC-1155', i: ShieldCheck },
-            { l: 'Asset ID', v: `#${nft.id.toString()}`, i: Zap },
-            { l: 'Access', v: 'Genesis Only', i: User },
-          ].map(item => (
-            <div key={item.l} className="bg-white/5 border border-white/5 p-6 rounded-[32px] flex flex-col items-center gap-2 group hover:border-secondary transition-all">
-              <item.i size={16} className="text-secondary opacity-40 group-hover:opacity-100 transition-opacity" />
-              <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{item.l}</p>
-              <p className="text-[10px] font-black italic text-white uppercase tracking-tight">{item.v}</p>
-            </div>
-          ))}
+    <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pt-2 text-left pb-10">
+      <div className="relative aspect-square w-full max-w-[280px] mx-auto bg-[#0f172a] rounded-3xl overflow-hidden border border-white/5 shadow-2xl">
+        <Image src={nft.image} alt="NFT" fill className="object-cover" priority />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-60" />
+        <div className="absolute bottom-4 left-4 right-4">
+          <p className="text-primary text-[8px] font-black uppercase tracking-[0.3em] mb-1">Series: {nft.tier}</p>
+          <h2 className="text-xl font-black italic uppercase text-white leading-none truncate">{nft.name}</h2>
         </div>
       </div>
 
-      <div className="lg:col-span-7 space-y-12">
-        <div className="space-y-8 text-left">
-          <div className="inline-flex items-center gap-3 px-5 py-2 bg-white/5 border border-white/10 rounded-2xl text-secondary">
-            <ShieldCheck size={18} />
-            <span className="text-xs font-black uppercase tracking-widest">Verified Archive Protocol</span>
+      <div className="bg-[#0f172a]/40 backdrop-blur-3xl border border-white/5 rounded-2xl p-5 space-y-5 shadow-xl">
+        <div className="flex justify-between items-center border-b border-white/5 pb-4">
+          <div className="text-left">
+            <p className="text-[7px] font-black text-slate-500 uppercase tracking-widest italic mb-1">Minting Cost</p>
+            <p className="text-lg font-black italic text-base-emerald uppercase tracking-tighter leading-none">Free Gasless</p>
           </div>
-          <h1 className="text-8xl lg:text-[120px] font-black italic tracking-tighter text-white leading-[0.8] uppercase">
-            Initialize <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Mint.</span>
-          </h1>
-          <p className="text-slate-400 text-xl font-medium italic leading-relaxed max-w-2xl">
-            {nft.desc}
-          </p>
+          <div className="text-right">
+            <p className="text-[7px] font-black text-slate-500 uppercase tracking-widest italic mb-1">Available</p>
+            <p className="text-lg font-black italic text-white tracking-tighter font-mono leading-none">
+              {loadingSupply ? '...' : (totalSupply?.toString() || '0')} <span className="text-[10px] text-slate-600">/ {nft.supply}</span>
+            </p>
+          </div>
         </div>
 
-        <div className="bg-[#0f172a]/40 backdrop-blur-3xl border border-white/5 rounded-[56px] p-10 lg:p-16 space-y-10 shadow-2xl">
-          <div className="flex justify-between items-center pb-10 border-b border-white/5">
-            <div className="text-left">
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic mb-3 leading-none">Minting Cost</p>
-              <p className="text-5xl font-black italic text-base-emerald uppercase tracking-tighter leading-none">Free <span className="text-sm text-slate-600 font-bold ml-3">NO GAS</span></p>
-            </div>
-            <div className="text-right">
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic mb-3 leading-none">Available</p>
-              <p className="text-5xl font-black italic text-white tracking-tighter font-mono leading-none">
-                {loadingSupply ? '...' : (totalSupply?.toString() || '0')} <span className="text-sm text-slate-600">/ {nft.supply}</span>
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            {!minted ? (
-              isConnected ? (
-                <TransactionButton
-                  transaction={() => claimTo({ contract, to: account!.address, tokenId: nft.id, quantity: 1n })}
-                  onTransactionConfirmed={(r) => { setMinted(true); setTxHash(r.transactionHash); }}
-                  onError={(e) => setError(e.message)}
-                  className="!w-full !bg-gradient-to-r !from-primary !to-indigo-600 !text-white !font-black !py-10 !rounded-[32px] !text-2xl !uppercase !shadow-2xl !shadow-primary/30 !border-none !transition-all hover:scale-105 active:scale-95"
-                >
-                  CONFIRM MINT (#{nft.id.toString()})
-                </TransactionButton>
-              ) : (
-                <div className="p-12 border-2 border-dashed border-white/10 rounded-[40px] text-center space-y-5 group hover:border-primary/30 transition-colors">
-                  <div className="w-20 h-20 bg-white/5 rounded-3xl mx-auto flex items-center justify-center">
-                    <Wallet className="text-slate-600 group-hover:text-primary transition-colors" size={40} />
-                  </div>
-                  <p className="text-xs font-black text-slate-500 uppercase tracking-[0.3em] italic">Connect to the secure network to proceed</p>
-                </div>
-              )
+        <div className="space-y-4">
+          {!minted ? (
+            isConnected ? (
+              <TransactionButton
+                transaction={() => claimTo({ contract, to: account!.address, tokenId: nft.id, quantity: 1n })}
+                onTransactionConfirmed={(r) => { setMinted(true); setTxHash(r.transactionHash); }}
+                onError={(e) => setError(e.message)}
+                className="!w-full !bg-gradient-to-r !from-primary !to-indigo-600 !text-white !font-black !py-4 !rounded-xl !text-xs !uppercase !shadow-lg !border-none transition-all active:scale-95"
+              >
+                CONFIRM MINT (#{nft.id.toString()})
+              </TransactionButton>
             ) : (
-              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-6">
-                <div className="bg-base-emerald/10 border border-base-emerald/20 p-10 rounded-[40px] flex items-center gap-8">
-                  <div className="w-20 h-20 bg-base-emerald rounded-3xl flex items-center justify-center shadow-2xl shadow-base-emerald/20">
-                    <CheckCircle2 size={40} className="text-black" />
-                  </div>
-                  <div className="text-left">
-                    <h4 className="text-2xl font-black italic uppercase text-white">Asset Secured.</h4>
-                    <a href={`https://basescan.org/tx/${txHash}`} target="_blank" className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em] hover:underline mt-2 flex items-center gap-2 leading-none">
-                      Transaction Receipt ↗
-                    </a>
-                  </div>
+              <div className="p-6 border border-dashed border-white/10 rounded-xl text-center space-y-3">
+                <Wallet className="mx-auto text-slate-600" size={24} />
+                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest italic">Connect to start</p>
+              </div>
+            )
+          ) : (
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-3">
+              <div className="bg-base-emerald/10 border border-base-emerald/20 p-4 rounded-xl flex items-center gap-4">
+                <div className="w-10 h-10 bg-base-emerald rounded-lg flex items-center justify-center shadow-lg">
+                  <CheckCircle2 size={24} className="text-black" />
                 </div>
-                <button onClick={shareToWarpcast} className="w-full bg-white text-black font-black py-8 rounded-[32px] text-sm uppercase tracking-[0.3em] hover:bg-secondary hover:text-white transition-all shadow-2xl">
-                  Share Your Voyager Status
-                </button>
-              </motion.div>
-            )}
-          </div>
+                <div className="text-left">
+                  <h4 className="text-xs font-black italic uppercase text-white leading-none mb-1">Asset Secured.</h4>
+                  <a href={`https://basescan.org/tx/${txHash}`} target="_blank" className="text-[7px] font-bold text-secondary uppercase tracking-widest hover:underline">Receipt ↗</a>
+                </div>
+              </div>
+              <button onClick={shareToWarpcast} className="w-full bg-white text-black font-black py-4 rounded-xl text-[9px] uppercase tracking-widest hover:bg-secondary hover:text-white transition-all">
+                Share Voyager Status
+              </button>
+            </motion.div>
+          )}
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        {[
+          { l: 'Network', v: 'Base' },
+          { l: 'Standard', v: '1155' },
+          { l: 'Asset ID', v: `#${nft.id.toString()}` },
+          { l: 'Access', v: 'Genesis' },
+        ].map(item => (
+          <div key={item.l} className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col items-center gap-0.5">
+            <p className="text-[6px] font-black text-slate-500 uppercase">{item.l}</p>
+            <p className="text-[8px] font-black italic text-white uppercase">{item.v}</p>
+          </div>
+        ))}
       </div>
     </motion.div>
   );
@@ -420,64 +311,48 @@ function ProfileView({ account, contract }: any) {
   });
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-16 py-10">
-      <div className="relative h-80 bg-slate-900 rounded-[64px] shadow-2xl overflow-hidden border border-white/5">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 pt-2 text-left">
+      <div className="relative h-32 bg-slate-900 rounded-3xl overflow-hidden border border-white/5">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-transparent to-secondary/30" />
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
-        <div className="absolute -bottom-16 left-20">
-          <div className="w-48 h-48 bg-[#020617] border-[12px] border-[#020617] rounded-[56px] shadow-2xl flex items-center justify-center overflow-hidden">
-            {account ? <div className="text-7xl animate-bounce">💎</div> : <User size={80} className="text-slate-800" />}
+        <div className="absolute -bottom-6 left-6">
+          <div className="w-20 h-20 bg-[#020617] border-4 border-[#020617] rounded-2xl shadow-xl flex items-center justify-center overflow-hidden">
+            {account ? <div className="text-3xl">💎</div> : <User size={32} className="text-slate-800" />}
           </div>
         </div>
       </div>
 
-      <div className="px-20 pt-10 flex flex-col md:flex-row justify-between items-end gap-12 text-left">
-        <div className="space-y-3">
-          <h2 className="text-6xl lg:text-7xl font-black italic uppercase tracking-tighter text-white drop-shadow-2xl leading-none">
-            {account ? `${account.address.slice(0,6)}...${account.address.slice(-4)}` : 'Unnamed Collector'}
-          </h2>
-          <div className="flex items-center gap-4">
-            <p className="text-xs font-black text-secondary uppercase tracking-[0.5em] italic">Identity Verified</p>
-            <div className="h-4 w-[1px] bg-white/10" />
-            <p className="text-xs font-black text-slate-500 uppercase tracking-[0.5em] italic">Base Network</p>
-          </div>
-        </div>
-        
-        {account && (
-          <div className="flex gap-6">
-            <div className="bg-white/5 border border-white/10 p-8 rounded-[40px] flex items-center gap-6 min-w-[240px] backdrop-blur-md">
-              <div className="w-14 h-14 bg-primary/20 rounded-2xl flex items-center justify-center">
-                <Zap className="text-primary" size={28} />
-              </div>
-              <div className="text-left">
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 leading-none">Genesis Assets</p>
-                <p className="text-4xl font-black italic text-white leading-none">{isLoading ? '...' : (balance?.toString() || '0')}</p>
-              </div>
+      <div className="px-6 pt-4 space-y-1">
+        <h2 className="text-xl font-black italic uppercase text-white truncate">
+          {account ? `${account.address.slice(0,6)}...${account.address.slice(-4)}` : 'Guest'}
+        </h2>
+        <p className="text-[8px] font-black text-secondary uppercase tracking-[0.3em] italic">Identity Verified</p>
+      </div>
+
+      <div className="px-6 space-y-4">
+        <div className="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+              <Zap className="text-primary" size={20} />
+            </div>
+            <div>
+              <p className="text-[7px] font-black text-slate-500 uppercase leading-none">Balance</p>
+              <p className="text-lg font-black italic text-white leading-none mt-1">Genesis Pass</p>
             </div>
           </div>
-        )}
-      </div>
-
-      <div className="px-20 grid md:grid-cols-3 gap-10">
-        <div className="md:col-span-2 bg-white/[0.02] border border-dashed border-white/10 rounded-[64px] py-40 flex flex-col items-center justify-center text-center group transition-all hover:bg-white/[0.04]">
-          <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-            <ShoppingBag className="text-slate-700" size={40} />
-          </div>
-          <p className="text-sm font-black uppercase tracking-[0.3em] text-slate-600 italic">No secondary transactions <br/>detected in treasury</p>
+          <p className="text-2xl font-black italic text-white">{isLoading ? '...' : (balance?.toString() || '0')}</p>
         </div>
-        
-        <div className="bg-gradient-to-b from-white/5 to-transparent rounded-[64px] border border-white/5 p-12 space-y-10 text-left">
-          <h4 className="font-black text-white text-sm uppercase tracking-[0.4em] text-center border-b border-white/10 pb-6 italic">Protocol Metadata</h4>
-          <div className="space-y-8">
+
+        <div className="bg-gradient-to-b from-white/5 to-transparent rounded-2xl border border-white/5 p-5 space-y-4">
+          <h4 className="font-black text-white text-[8px] uppercase tracking-[0.3em] text-center border-b border-white/10 pb-3 italic">Metadata</h4>
+          <div className="space-y-3">
             {[
-              { l: 'Auth Status', v: 'Secured', c: 'text-base-emerald' },
-              { l: 'Base Protocol', v: 'v2.0 Beta', c: 'text-secondary' },
-              { l: 'Loyalty Class', v: 'Voyager', c: 'text-white' },
-              { l: 'Snapshot', v: 'Eligible', c: 'text-primary' },
+              { l: 'Network', v: 'Base Mainnet', c: 'text-base-emerald' },
+              { l: 'Protocol', v: 'v2.0 Beta', c: 'text-secondary' },
+              { l: 'Loyalty', v: 'Voyager', c: 'text-white' },
             ].map(s => (
-              <div key={s.l} className="flex justify-between items-center group">
-                <span className="text-[10px] font-bold uppercase text-slate-500 tracking-widest group-hover:text-slate-300 transition-colors">{s.l}</span>
-                <span className={`text-[10px] font-black uppercase ${s.c} group-hover:scale-110 transition-transform`}>{s.v}</span>
+              <div key={s.l} className="flex justify-between items-center">
+                <span className="text-[8px] font-bold uppercase text-slate-500 tracking-widest">{s.l}</span>
+                <span className={`text-[8px] font-black uppercase ${s.c}`}>{s.v}</span>
               </div>
             ))}
           </div>
@@ -489,49 +364,28 @@ function ProfileView({ account, contract }: any) {
 
 function RoadmapView() {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-24 py-20 text-center">
-      <div className="max-w-4xl mx-auto space-y-8 relative">
-        <h2 className="text-[150px] lg:text-[200px] font-black italic tracking-tighter text-white uppercase leading-none opacity-[0.03] absolute left-0 right-0 -top-20 -z-10 select-none">VISION</h2>
-        <h3 className="text-7xl lg:text-9xl font-black italic uppercase tracking-tighter text-white drop-shadow-2xl">BLUE MAP.</h3>
-        <div className="w-24 h-2 bg-gradient-to-r from-primary to-secondary mx-auto rounded-full" />
-        <p className="text-slate-400 text-xl lg:text-2xl font-medium italic max-w-2xl mx-auto leading-relaxed">
-          The strategic evolution of Ouwibo ecosystem infrastructure. Pioneering the next-gen social-finance on Base.
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8 pt-4 text-center">
+      <div className="space-y-2">
+        <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white">BLUE MAP.</h3>
+        <p className="text-slate-400 text-[10px] font-medium italic leading-relaxed px-4">
+          The strategic evolution of Ouwibo ecosystem on Base.
         </p>
       </div>
 
-      <div className="grid gap-12 max-w-6xl mx-auto">
+      <div className="space-y-4 px-4">
         {[
-          { p: '01', t: 'Genesis Deployment', d: 'Global synchronization of 6,969 limited passes and deep integration with Farcaster frames protocol v2.' },
-          { p: '02', t: 'Cyber Airdrop Sync', d: 'Comprehensive snapshot of all Genesis holders for the $SHELL utility and governance token distribution.' },
-          { p: '03', t: 'Atlantis Governance', d: 'Transition to a fully decentralized Social DAO structure for community-led infrastructure expansion.' },
+          { p: '01', t: 'Deployment', d: 'Global synchronization of 6,969 limited passes.' },
+          { p: '02', t: 'Airdrop Sync', d: 'Comprehensive snapshot for $SHELL distribution.' },
+          { p: '03', t: 'Social DAO', d: 'Transition to community-led infrastructure.' },
         ].map((step, i) => (
-          <div key={i} className="group relative text-left">
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-[56px] opacity-0 group-hover:opacity-20 blur-3xl transition-all duration-1000" />
-            <div className="relative bg-[#0f172a]/40 backdrop-blur-2xl border border-white/5 p-16 rounded-[56px] flex flex-col md:flex-row gap-16 items-center transition-all duration-700 hover:bg-white/[0.08] hover:border-white/10">
-              <div className="text-[120px] font-black italic text-white/5 select-none leading-none group-hover:text-primary/20 transition-colors duration-700">{step.p}</div>
-              <div className="space-y-6 flex-1 text-center md:text-left text-left">
-                <div className="flex items-center justify-center md:justify-start gap-4">
-                  <span className="text-xs font-black text-primary uppercase tracking-[0.5em] italic leading-none">Milestone</span>
-                  <div className="h-1 w-12 bg-white/10 rounded-full" />
-                </div>
-                <h4 className="text-5xl font-black italic uppercase tracking-tighter text-white group-hover:text-secondary transition-colors duration-700 leading-none">{step.t}</h4>
-                <p className="text-slate-400 font-medium italic text-xl leading-relaxed">{step.d}</p>
-              </div>
-              <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center border border-white/10 group-hover:bg-primary transition-all duration-700 group-hover:rotate-[360deg]">
-                <Info className="text-white group-hover:text-black transition-colors" size={32} />
-              </div>
+          <div key={i} className="relative bg-[#0f172a]/40 backdrop-blur-2xl border border-white/5 p-5 rounded-2xl flex items-center gap-5 text-left">
+            <div className="text-2xl font-black italic text-white/5 select-none">{step.p}</div>
+            <div className="space-y-1">
+              <h4 className="text-sm font-black italic uppercase text-primary leading-none">{step.t}</h4>
+              <p className="text-slate-400 text-[9px] italic leading-tight">{step.d}</p>
             </div>
           </div>
         ))}
-      </div>
-
-      <div className="bg-gradient-to-tr from-primary/10 to-secondary/10 border border-white/10 p-20 rounded-[72px] text-center max-w-4xl mx-auto backdrop-blur-3xl shadow-2xl relative overflow-hidden">
-         <div className="absolute top-0 right-0 w-64 h-64 bg-primary blur-[100px] opacity-10" />
-         <Zap className="text-secondary mx-auto mb-8 animate-bounce" size={48} />
-         <h4 className="text-3xl font-black uppercase italic mb-4 text-white tracking-tighter leading-none">The $SHELL Reward Protocol</h4>
-         <p className="text-xl text-slate-400 italic font-medium leading-relaxed max-w-2xl mx-auto">
-           60% of total $SHELL supply is reserved for the community. Holding a Genesis Pass is the primary requirement for eligibility.
-         </p>
       </div>
     </motion.div>
   );
