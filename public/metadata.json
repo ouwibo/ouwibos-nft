@@ -1,5 +1,6 @@
 {
-  "name": "ouwibo swap",
-  "description": "A seamless token swap mini-app for Farcaster and Base, designed for speed and simplicity.",
-  "requestFramePermissions": []
+  "name": "Ouwibo NFT",
+  "description": "Mint Ouwibo NFT on Base Mainnet gasless.",
+  "icon": "/ouwibo-nft.png",
+  "app_id": "69a11773dce51e894f97278f"
 }
