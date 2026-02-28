@@ -33,6 +33,7 @@ export default function OuwiboBaseApp() {
   const [mintCount, setMintCount] = useState(1240);
   const [txHash, setTxHash] = useState<string | null>(null);
   
+  const [mounted, setMounted] = useState(false);
   useEffect(() => {
     const init = async () => {
       try {
