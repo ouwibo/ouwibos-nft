@@ -23,6 +23,9 @@ import { parseAbi } from 'viem';
 import { WalletConnector } from "@/components/WalletConnector";
 
 const CONTRACT_ADDRESS = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25") as `0x${string}`;
+if (!CONTRACT_ADDRESS) {
+  console.warn("CONTRACT_ADDRESS is not defined in environment variables. Falling back to default.");
+}
 const ABI = parseAbi([
   "function claim(address receiver, uint256 quantity, address currency, uint256 pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) allowlistProof, bytes data) external payable",
   "function totalSupply() view returns (uint256)",
