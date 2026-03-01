@@ -10,11 +10,18 @@ import { WagmiProvider, createConfig, http } from 'wagmi';
 import { base } from 'wagmi/chains';
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
+import { coinbaseWallet } from 'wagmi/connectors';
 import { Loader2 } from "lucide-react";
 
 const config = createConfig({
   chains: [base],
-  connectors: [farcasterFrame()],
+  connectors: [
+    farcasterFrame(),
+    coinbaseWallet({
+      appName: 'OUWIBO GENESIS',
+      preference: 'smartWalletOnly',
+    }),
+  ],
   transports: {
     [base.id]: http(),
   },
@@ -47,7 +54,7 @@ export function Providers({ children }: { children: ReactNode }) {
           accentColor: '#8B5CF6',
           accentColorForeground: 'white',
           borderRadius: 'large',
-        })}>
+        })} modalSize="compact">
           {children}
         </RainbowKitProvider>
       </QueryClientProvider>

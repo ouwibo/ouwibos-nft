@@ -57,11 +57,15 @@ export default function OuwiboBaseApp() {
     const init = async () => {
       try {
         await sdk.actions.ready();
+        
+        // Auto-connect inside Farcaster frame
         const farcasterConnector = connectors.find(c => c.id === 'farcaster');
         if (farcasterConnector && !isConnected) {
           connect({ connector: farcasterConnector });
         }
-      } catch (e) { console.error("SDK Error", e); }
+      } catch (e) { 
+        console.error("SDK Error", e); 
+      }
     };
     init();
     setMounted(true);
