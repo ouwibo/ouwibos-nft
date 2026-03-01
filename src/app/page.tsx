@@ -105,37 +105,43 @@ export default function OuwiboBaseApp() {
     }
   }, [isConfirmed, hash, setMinted, setTxHash]);
 
-  const handleMint = useCallback(() => {
-    if (!address) return;
+  const [mintError, setMintError] = useState<string | null>(null);
 
-    // Try standard claim first, if fails it might be a simpler claimTo
+  const handleMint = useCallback(async () => {
+    if (!address) return;
+    
+    setMinted(false);
+    setTxHash(null);
+    setMintError(null);
+    
+    // Using API for Gasless Minting
     try {
-      writeContract({
-        address: CONTRACT_ADDRESS,
-        abi: ABI,
-        functionName: 'claim',
-        args: [
+      const response = await fetch('/api/mint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
           address, 
-          selectedNftId, 
-          1n, 
-          '0x0000000000000000000000000000000000000000', // currency (ETH)
-          0n, // price per token
-          [[], 0n, 0n, '0x0000000000000000000000000000000000000000'], // allowlist proof placeholder
-          '0x' // data
-        ],
-        chainId: base.id,
+          nftId: selectedNftId.toString() 
+        }),
       });
-    } catch (e) {
-      console.log("Standard claim failed, trying claimTo...");
-      writeContract({
-        address: CONTRACT_ADDRESS,
-        abi: ABI,
-        functionName: 'claimTo',
-        args: [address, selectedNftId, 1n],
-        chainId: base.id,
-      });
+      
+      const data = await response.json();
+      
+      if (!response.ok || data.error) {
+        throw new Error(data.error || 'Failed to mint via API');
+      }
+      
+      if (data.txHash || data.success) {
+        setTxHash(data.txHash);
+        setMinted(true);
+      }
+    } catch (e: any) {
+      console.error("Minting Error:", e);
+      setMintError(e.message || "An unexpected error occurred during minting.");
     }
-  }, [address, selectedNftId, writeContract]);
+  }, [address, selectedNftId]);
+
+  const [isMinting, setIsMinting] = useState(false);
 
   return (
     <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pt-2 text-left pb-8">
@@ -163,11 +169,26 @@ export default function OuwiboBaseApp() {
         </div>
 
         <div className="space-y-3">
+          {mintError && (
+            <div className="p-3 bg-red-900/20 border border-red-500/20 rounded-xl flex items-center gap-2">
+              <AlertCircle size={12} className="text-red-500 shrink-0" />
+              <p className="text-[8px] font-black text-red-400 uppercase tracking-widest leading-tight">{mintError}</p>
+            </div>
+          )}
+
           {!minted ? (
             isConnected ? (
-              <button disabled={isPending || isConfirming} onClick={handleMint} className="w-full bg-gradient-to-r from-primary to-indigo-600 text-white font-black py-3.5 rounded-xl text-[10px] uppercase shadow-lg border-none active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                {(isPending || isConfirming) && <Loader2 size={12} className="animate-spin" />}
-                {isConfirming ? "Confirming..." : isPending ? "Processing..." : `INITIALIZE MINT (#${nft.id.toString()})`}
+              <button 
+                disabled={isMinting} 
+                onClick={async () => {
+                  setIsMinting(true);
+                  await handleMint();
+                  setIsMinting(false);
+                }} 
+                className="w-full bg-gradient-to-r from-primary to-indigo-600 text-white font-black py-3.5 rounded-xl text-[10px] uppercase shadow-lg border-none active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isMinting && <Loader2 size={12} className="animate-spin" />}
+                {isMinting ? "GASLESS MINTING..." : `INITIALIZE MINT (#${nft.id.toString()})`}
               </button>
             ) : (
               <div className="p-6 border border-dashed border-white/10 rounded-xl text-center space-y-4 flex flex-col items-center">
