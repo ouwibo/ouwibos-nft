@@ -105,43 +105,56 @@ export default function OuwiboBaseApp() {
     }
   }, [isConfirmed, hash, setMinted, setTxHash]);
 
+  const { writeContract, data: hash, isPending, error: writeError } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
+
+  useEffect(() => {
+    if (isConfirmed) {
+      setMinted(true);
+      setTxHash(hash || null);
+    }
+  }, [isConfirmed, hash, setMinted, setTxHash]);
+
   const [mintError, setMintError] = useState<string | null>(null);
 
-  const handleMint = useCallback(async () => {
+  const handleMint = useCallback(() => {
     if (!address) return;
-    
-    setMinted(false);
-    setTxHash(null);
     setMintError(null);
-    
-    // Using API for Gasless Minting
-    try {
-      const response = await fetch('/api/mint', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          address, 
-          nftId: selectedNftId.toString() 
-        }),
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok || data.error) {
-        throw new Error(data.error || 'Failed to mint via API');
-      }
-      
-      if (data.txHash || data.success) {
-        setTxHash(data.txHash);
-        setMinted(true);
-      }
-    } catch (e: any) {
-      console.error("Minting Error:", e);
-      setMintError(e.message || "An unexpected error occurred during minting.");
-    }
-  }, [address, selectedNftId]);
+
+    // Precise Thirdweb Claim parameters for ERC-1155
+    writeContract({
+      address: CONTRACT_ADDRESS,
+      abi: ABI,
+      functionName: 'claim',
+      args: [
+        address,             // _receiver
+        selectedNftId,       // _tokenId
+        1n,                  // _quantity
+        '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // _currency (Native ETH)
+        0n,                  // _pricePerToken (Free)
+        {
+          proof: [],         // _allowlistProof
+          quantityLimitPerWallet: 0n, // No limit specified in proof
+          pricePerToken: 0n, // Price in proof
+          currency: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' // Currency in proof
+        },
+        '0x'                 // _data
+      ],
+      chainId: base.id,
+    });
+  }, [address, selectedNftId, writeContract]);
 
   const [isMinting, setIsMinting] = useState(false);
+
+  useEffect(() => {
+    setIsMinting(isPending || isConfirming);
+  }, [isPending, isConfirming]);
+
+  useEffect(() => {
+    if (writeError) {
+      setMintError(writeError.message.includes('User rejected') ? 'Transaction rejected by user' : 'Minting failed. Check your ETH balance for gas.');
+    }
+  }, [writeError]);
 
   return (
     <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pt-2 text-left pb-8">
