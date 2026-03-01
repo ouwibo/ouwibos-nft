@@ -24,10 +24,9 @@ import { WalletConnector } from "@/components/WalletConnector";
 
 const CONTRACT_ADDRESS = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25") as `0x${string}`;
 const ABI = parseAbi([
-  "function claim(address receiver, uint256 tokenId, uint256 quantity, address currency, uint256 pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) allowlistProof, bytes data) external payable",
-  "function claimTo(address to, uint256 tokenId, uint256 quantity) external",
-  "function totalSupply(uint256 id) view returns (uint256)",
-  "function balanceOf(address account, uint256 id) view returns (uint256)"
+  "function claim(address receiver, uint256 quantity, address currency, uint256 pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) allowlistProof, bytes data) external payable",
+  "function totalSupply() view returns (uint256)",
+  "function balanceOf(address account) view returns (uint256)"
 ]);
 
 const NFT_COLLECTION = [
@@ -45,7 +44,7 @@ const NFT_COLLECTION = [
 type Tab = 'explore' | 'mint' | 'profile' | 'ai';
 
 export default function OuwiboBaseApp() {
-  const { address, isConnected, chainId } = useAccount();
+  const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
   
   const [activeTab, setActiveTab] = useState<Tab>('explore');
@@ -53,6 +52,7 @@ export default function OuwiboBaseApp() {
   const [minted, setMinted] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [mintError, setMintError] = useState<string | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -78,7 +78,6 @@ export default function OuwiboBaseApp() {
     address: CONTRACT_ADDRESS,
     abi: ABI,
     functionName: 'totalSupply',
-    args: [selectedNftId],
     chainId: base.id,
   });
 
@@ -103,38 +102,32 @@ export default function OuwiboBaseApp() {
       setMinted(true);
       setTxHash(hash || null);
     }
-  }, [isConfirmed, hash, setMinted, setTxHash]);
-
-  const { writeContract, data: hash, isPending, error: writeError } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
+  }, [isConfirmed, hash]);
 
   useEffect(() => {
-    if (isConfirmed) {
-      setMinted(true);
-      setTxHash(hash || null);
+    if (writeError) {
+      console.error("Write Error:", writeError);
+      setMintError(writeError.message.includes('User rejected') ? 'Transaction rejected by user' : 'Minting failed. Simulation might have failed.');
     }
-  }, [isConfirmed, hash, setMinted, setTxHash]);
-
-  const [mintError, setMintError] = useState<string | null>(null);
+  }, [writeError]);
 
   const handleMint = useCallback(() => {
     if (!address) return;
     setMintError(null);
 
-    // Precise Thirdweb Claim parameters for ERC-1155
+    // ERC-721 Drop claim
     writeContract({
       address: CONTRACT_ADDRESS,
       abi: ABI,
       functionName: 'claim',
       args: [
         address,             // _receiver
-        selectedNftId,       // _tokenId
         1n,                  // _quantity
         '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // _currency (Native ETH)
         0n,                  // _pricePerToken (Free)
         {
           proof: [],         // _allowlistProof
-          quantityLimitPerWallet: 0n, // No limit specified in proof
+          quantityLimitPerWallet: BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935"), // Max uint256
           pricePerToken: 0n, // Price in proof
           currency: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' // Currency in proof
         },
@@ -142,20 +135,135 @@ export default function OuwiboBaseApp() {
       ],
       chainId: base.id,
     });
-  }, [address, selectedNftId, writeContract]);
+  }, [address, writeContract]);
 
-  const [isMinting, setIsMinting] = useState(false);
+  if (!mounted) return (
+    <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+      <div className="relative flex flex-col items-center gap-4">
+        <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+        <div className="absolute inset-0 bg-primary blur-3xl opacity-20 animate-pulse" />
+        <p className="text-[8px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Initialising Protocol</p>
+      </div>
+    </div>
+  );
 
-  useEffect(() => {
-    setIsMinting(isPending || isConfirming);
-  }, [isPending, isConfirming]);
+  return (
+    <main className="min-h-screen bg-[#020617] text-slate-200 font-sans selection:bg-primary/30 pb-16 overflow-hidden max-w-[430px] mx-auto relative touch-manipulation">
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-purple-900/10 rounded-full blur-[60px] animate-glow-pulse" />
+        <div className="absolute bottom-[-5%] right-[-5%] w-[40%] h-[40%] bg-cyan-900/10 rounded-full blur-[60px] animate-glow-pulse delay-1000" />
+      </div>
 
-  useEffect(() => {
-    if (writeError) {
-      setMintError(writeError.message.includes('User rejected') ? 'Transaction rejected by user' : 'Minting failed. Check your ETH balance for gas.');
-    }
-  }, [writeError]);
+      <header className="sticky top-0 z-50 px-3 py-2.5 backdrop-blur-xl border-b border-white/5 bg-[#020617]/80 flex items-center justify-between">
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('explore')}>
+          <div className="w-7 h-7 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center shadow-lg">
+            <Zap className="text-white fill-current" size={14} />
+          </div>
+          <div className="text-left">
+            <h1 className="font-black text-xs tracking-tighter text-white leading-none">OUWIBO</h1>
+            <p className="text-[6px] font-black text-secondary uppercase tracking-widest mt-0.5 leading-none">Base Network</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 scale-75 origin-right">
+          <WalletConnector />
+        </div>
+      </header>
 
+      <div className="relative z-10 px-3 pt-3 pb-8 text-left">
+        <AnimatePresence mode="wait">
+          {activeTab === 'explore' && <ExploreView key="explore" onNftClick={handleViewNft} />}
+          {activeTab === 'mint' && (
+            <MintView 
+              key="mint" 
+              isConnected={isConnected} 
+              minted={minted} 
+              setMinted={setMinted} 
+              setTxHash={setTxHash} 
+              txHash={txHash} 
+              totalSupply={totalSupply} 
+              loadingSupply={loadingSupply} 
+              address={address} 
+              shareToWarpcast={shareToWarpcast} 
+              nft={selectedNft} 
+              handleMint={handleMint} 
+              mintError={mintError}
+              isPending={isPending}
+              isConfirming={isConfirming}
+            />
+          )}
+          {activeTab === 'profile' && <ProfileView key="profile" address={address} />}
+          {activeTab === 'ai' && <AiChatView key="ai" />}
+        </AnimatePresence>
+      </div>
+
+      <nav className="fixed bottom-3 left-3 right-3 z-50 bg-black/60 backdrop-blur-2xl border border-white/10 p-1 rounded-2xl flex items-center justify-around shadow-2xl">
+        {[
+          { id: 'explore', icon: LayoutGrid, label: 'Explore' },
+          { id: 'mint', icon: Zap, label: 'Mint' },
+          { id: 'profile', icon: User, label: 'Wallet' },
+          { id: 'ai', icon: Bot, label: 'Clawdbot' },
+        ].map((tab) => (
+          <button key={tab.id} onClick={() => setActiveTab(tab.id as Tab)} className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-300 ${activeTab === tab.id ? 'bg-primary text-white scale-105' : 'text-slate-500'}`}>
+            <tab.icon size={14} strokeWidth={activeTab === tab.id ? 3 : 2} />
+            <span className="text-[6px] font-black uppercase tracking-widest">{tab.label}</span>
+          </button>
+        ))}
+      </nav>
+    </main>
+  );
+}
+
+function ExploreView({ onNftClick }: any) {
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 text-left">
+      <section className="space-y-2 pt-1 border-b border-white/5 pb-6 text-left">
+        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 border border-primary/20 rounded-md">
+          <ShieldCheck size={8} className="text-primary" />
+          <span className="text-[6px] font-black text-primary uppercase tracking-widest leading-none">Verified Infrastructure</span>
+        </div>
+        <h1 className="text-4xl font-black italic tracking-tighter text-white leading-none uppercase text-left">
+          OUWIBO <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary text-left">GENESIS.</span>
+        </h1>
+        <p className="text-slate-400 text-[10px] font-medium italic leading-tight max-w-[280px] text-left">
+          Portal aset digital resmi Ouwibo di jaringan Base. Minting Utility NFT untuk membuka akses penuh ke protokol.
+        </p>
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex items-center justify-between text-left">
+          <h2 className="text-[10px] font-black italic uppercase tracking-[0.2em] text-slate-500 text-left leading-none">Official Collection</h2>
+          <span className="w-12 h-[1px] bg-white/5" />
+        </div>
+        
+        <div className="flex flex-col gap-4">
+          {NFT_COLLECTION.map((nft) => (
+            <motion.div key={nft.id.toString()} whileTap={{ scale: 0.98 }} onClick={() => onNftClick(nft.id)} className="group relative bg-[#0f172a]/40 backdrop-blur-xl border border-white/5 rounded-3xl p-4 flex items-center gap-5 transition-all active:border-primary/50 text-left" >
+              <div className="relative w-20 h-20 shrink-0 rounded-2xl overflow-hidden border border-white/10 shadow-lg">
+                <Image src={nft.image} alt={nft.name} fill className="object-cover" />
+              </div>
+              <div className="flex-1 space-y-1.5 pr-2 text-left">
+                <div className="flex items-center justify-between text-left">
+                  <span className="text-[7px] font-black text-secondary uppercase tracking-widest bg-secondary/10 px-1.5 py-0.5 rounded-md leading-none">Primary Pass</span>
+                  <span className="text-[8px] font-black text-slate-600 uppercase italic leading-none">ID #{nft.id.toString()}</span>
+                </div>
+                <h3 className="text-lg font-black italic uppercase text-white leading-none tracking-tight group-hover:text-primary transition-colors text-left">{nft.name}</h3>
+                <p className="text-[9px] text-slate-400 font-medium leading-tight line-clamp-2 italic text-left">{nft.tagline}</p>
+                <div className="flex items-center gap-1 text-base-emerald text-[7px] font-black uppercase tracking-widest pt-1 leading-none text-left">
+                  <Zap size={8} className="fill-current" /> Status: Open Mint
+                </div>
+              </div>
+              <div className="shrink-0 text-slate-600 group-hover:text-primary transition-colors">
+                <ChevronRight size={16} />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+    </motion.div>
+  );
+}
+
+function MintView({ isConnected, minted, setMinted, setTxHash, txHash, totalSupply, loadingSupply, address, shareToWarpcast, nft, handleMint, mintError, isPending, isConfirming }: any) {
   return (
     <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pt-2 text-left pb-8">
       <div className="relative aspect-square w-full max-w-[240px] mx-auto bg-[#0f172a] rounded-2xl overflow-hidden border border-white/5 shadow-xl">
@@ -169,14 +277,14 @@ export default function OuwiboBaseApp() {
 
       <div className="bg-[#0f172a]/40 backdrop-blur-3xl border border-white/5 rounded-2xl p-4 space-y-4 text-left">
         <div className="flex justify-between items-center border-b border-white/5 pb-3">
-          <div className="text-left text-left">
-            <p className="text-[6px] font-black text-slate-500 uppercase tracking-widest mb-0.5 leading-none text-left">Minting Fee</p>
-            <p className="text-sm font-black italic text-base-emerald uppercase leading-none text-left">Free Gasless</p>
+          <div className="text-left">
+            <p className="text-[6px] font-black text-slate-500 uppercase tracking-widest mb-0.5 leading-none">Minting Fee</p>
+            <p className="text-sm font-black italic text-base-emerald uppercase leading-none">Free + Gas</p>
           </div>
           <div className="text-right">
-            <p className="text-[6px] font-black text-slate-500 uppercase tracking-widest mb-0.5 leading-none text-right">Supply Count</p>
-            <p className="text-sm font-black italic text-white tracking-tighter leading-none font-mono text-right">
-              {loadingSupply ? '..' : (totalSupply?.toString() || '0')} / {nft.supply}
+            <p className="text-[6px] font-black text-slate-500 uppercase tracking-widest mb-0.5 leading-none">Total Minted</p>
+            <p className="text-sm font-black italic text-white tracking-tighter leading-none font-mono">
+              {loadingSupply ? '..' : (totalSupply?.toString() || '0')}
             </p>
           </div>
         </div>
@@ -192,16 +300,12 @@ export default function OuwiboBaseApp() {
           {!minted ? (
             isConnected ? (
               <button 
-                disabled={isMinting} 
-                onClick={async () => {
-                  setIsMinting(true);
-                  await handleMint();
-                  setIsMinting(false);
-                }} 
+                disabled={isPending || isConfirming} 
+                onClick={handleMint} 
                 className="w-full bg-gradient-to-r from-primary to-indigo-600 text-white font-black py-3.5 rounded-xl text-[10px] uppercase shadow-lg border-none active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {isMinting && <Loader2 size={12} className="animate-spin" />}
-                {isMinting ? "GASLESS MINTING..." : `INITIALIZE MINT (#${nft.id.toString()})`}
+                {(isPending || isConfirming) && <Loader2 size={12} className="animate-spin" />}
+                {isConfirming ? "CONFIRMING..." : isPending ? "WAITING FOR WALLET..." : "INITIALIZE MINT"}
               </button>
             ) : (
               <div className="p-6 border border-dashed border-white/10 rounded-xl text-center space-y-4 flex flex-col items-center">
@@ -217,7 +321,7 @@ export default function OuwiboBaseApp() {
                   <CheckCircle2 size={18} className="text-black" />
                 </div>
                 <div className="text-left">
-                  <h4 className="text-[10px] font-black uppercase text-white leading-none text-left">Mint Successful</h4>
+                  <h4 className="text-[10px] font-black uppercase text-white leading-none">Mint Successful</h4>
                   <a href={`https://basescan.org/tx/${txHash}`} target="_blank" className="text-[6px] font-bold text-secondary uppercase hover:underline leading-none">Explorer Receipt ↗</a>
                 </div>
               </div>
@@ -237,26 +341,27 @@ function ProfileView({ address }: any) {
     address: CONTRACT_ADDRESS,
     abi: ABI,
     functionName: 'balanceOf',
-    args: [address || "0x0000000000000000000000000000000000000000", 0n],
+    args: [address || "0x0000000000000000000000000000000000000000"],
+    chainId: base.id,
   });
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 pt-2 text-left text-left">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 pt-2 text-left">
       <div className="relative h-32 bg-slate-900 rounded-3xl overflow-hidden border border-white/5">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-transparent to-secondary/30" />
         <div className="absolute -bottom-6 left-6">
           <div className="w-20 h-20 bg-[#020617] border-4 border-[#020617] rounded-2xl shadow-xl flex items-center justify-center overflow-hidden text-3xl">💎</div>
         </div>
       </div>
-      <div className="px-6 pt-4 space-y-1 text-left">
-        <h2 className="text-xl font-black italic uppercase text-white truncate text-left">{address ? `${address.slice(0,6)}...${address.slice(-4)}` : 'Guest'}</h2>
-        <p className="text-[8px] font-black text-secondary uppercase tracking-[0.3em] italic leading-none text-left">Identity Verified on Base</p>
+      <div className="px-6 pt-4 space-y-1">
+        <h2 className="text-xl font-black italic uppercase text-white truncate">{address ? `${address.slice(0,6)}...${address.slice(-4)}` : 'Guest'}</h2>
+        <p className="text-[8px] font-black text-secondary uppercase tracking-[0.3em] italic leading-none">Identity Verified on Base</p>
       </div>
       <div className="px-6 space-y-4">
-        <div className="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between text-left">
-          <div className="flex items-center gap-3 text-left">
+        <div className="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center text-primary"><Zap size={20} /></div>
-            <div className="text-left"><p className="text-[7px] font-black text-slate-500 uppercase leading-none text-left">Utility Balance</p><p className="text-lg font-black italic text-white leading-none mt-1 text-left">Genesis Pass</p></div>
+            <div><p className="text-[7px] font-black text-slate-500 uppercase leading-none">Utility Balance</p><p className="text-lg font-black italic text-white leading-none mt-1">Genesis Pass</p></div>
           </div>
           <p className="text-2xl font-black italic text-white leading-none">{isLoading ? '...' : (balance?.toString() || '0')}</p>
         </div>
@@ -274,7 +379,7 @@ function AiChatView() {
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
 
   const KNOWLEDGE_BASE: Record<string, string> = {
-    'genesis': 'The **OUWIBO Genesis Pass (ID #0)** is our legendary tier asset. It grants 100% governance rights and the highest multiplier for $SHELL allocations.',
+    'genesis': 'The **OUWIBO Genesis Pass** is our legendary tier asset. It grants 100% governance rights and the highest multiplier for $SHELL allocations.',
     'shell': '**$SHELL** is the native utility token of the Atlantis ecosystem. 60% of the supply is reserved for the community, primarily Genesis holders.',
     'base': 'We are built natively on **Base**, the secure and low-cost Layer 2 network powered by Coinbase.',
     'mint': 'You can initialize your mint in the **Mint** tab. Remember, the limit is **1 Pass per wallet** to ensure fair distribution.',
