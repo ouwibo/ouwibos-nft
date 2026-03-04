@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { RootClientLayout } from '@/components/RootClientLayout'
+import { Analytics } from '@vercel/analytics/next'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -77,6 +78,7 @@ export default function RootLayout({
         <RootClientLayout>
           {children}
         </RootClientLayout>
+        <Analytics />
       </body>
     </html>
   )
