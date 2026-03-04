@@ -1,16 +1,17 @@
 {
-  "name": "Ouwibo NFT",
-  "short_name": "Ouwibo",
-  "description": "Mint Ouwibo NFT on Base Mainnet gasless.",
+  "name": "OUWIBO GENESIS",
+  "short_name": "OUWIBO",
+  "description": "Premium digital asset protocol on Base network.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#020617",
   "icons": [
     {
       "src": "/ouwibo-nft.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
-  ],
-  "start_url": "/",
-  "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#000000"
+  ]
 }

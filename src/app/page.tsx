@@ -10,19 +10,23 @@ import {
   useConnect, 
   useReadContract, 
   useWriteContract, 
-  useWaitForTransactionReceipt 
+  useWaitForTransactionReceipt,
+  useSwitchChain,
+  useChainId,
+  useSendTransaction
 } from 'wagmi';
 import { 
   LayoutGrid, User, Loader2, 
   AlertCircle, ShieldCheck, Zap, CheckCircle2,
-  ChevronRight, Bot, Send, Wallet
+  ChevronRight, Bot, Send, Wallet, Coffee, Heart
 } from 'lucide-react';
+import { toast } from 'sonner';
 import sdk from "@farcaster/miniapp-sdk";
 import { WalletConnector } from '@/components/WalletConnector';
 
 // Constants
 const CONTRACT_ADDRESS = "0x69A11773Dce51E894f97278F3d40Aae8efEde91f" as `0x${string}`;
-const MINT_PRICE = "0"; // Back to Free Mint
+const MINT_PRICE = "0"; 
 const CREATOR_WALLET = "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2";
 
 const ABI = ([
@@ -48,6 +52,8 @@ type Tab = 'explore' | 'mint' | 'profile' | 'ai';
 export default function OuwiboBaseApp() {
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
+  const currentChainId = useChainId();
+  const { switchChain } = useSwitchChain();
   
   const [activeTab, setActiveTab] = useState<Tab>('explore');
   const [selectedNftId, setSelectedNftId] = useState<bigint>(0n);
@@ -61,7 +67,6 @@ export default function OuwiboBaseApp() {
       try {
         await sdk.actions.ready();
         
-        // Auto-connect inside Farcaster frame
         const farcasterConnector = connectors.find(c => c.id === 'farcaster');
         if (farcasterConnector && !isConnected) {
           connect({ connector: farcasterConnector });
@@ -114,43 +119,53 @@ export default function OuwiboBaseApp() {
       setMinted(true);
       setTxHash(hash || null);
       refetchBalance();
+      toast.success("Minting Successful!", {
+        description: "Your Genesis Pass has been secured in your wallet."
+      });
     }
   }, [isConfirmed, hash, refetchBalance]);
 
   useEffect(() => {
     if (writeError) {
       console.error("Write Error:", writeError);
-      setMintError(writeError.message.includes('User rejected') ? 'Transaction rejected by user' : 'Minting failed. Simulation might have failed.');
+      const msg = writeError.message.includes('User rejected') ? 'Transaction rejected by user' : 'Minting failed. Please try again.';
+      setMintError(msg);
+      toast.error("Minting Error", { description: msg });
     }
   }, [writeError]);
 
   const handleMint = useCallback(() => {
     if (!address) return;
-    setMintError(null);
+    
+    // Check Chain
+    if (currentChainId !== base.id) {
+      switchChain({ chainId: base.id });
+      return;
+    }
 
+    setMintError(null);
     const price = parseEther(MINT_PRICE);
 
-    // ERC-721 Drop claim
     writeContract({
       address: CONTRACT_ADDRESS,
       abi: ABI,
       functionName: 'claim',
       args: [
-        address,             // _receiver
-        1n,                  // _quantity
-        '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // _currency (Native ETH)
-        price,               // _pricePerToken
+        address,
+        1n,
+        '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+        price,
         {
-          proof: [],         // _allowlistProof
-          quantityLimitPerWallet: BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935"), // Max uint256
-          pricePerToken: price, // Price in proof
-          currency: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' // Currency in proof
+          proof: [],
+          quantityLimitPerWallet: BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935"),
+          pricePerToken: price,
+          currency: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
         },
-        '0x'                 // _data
+        '0x'
       ],
       chainId: base.id,
     });
-  }, [address, writeContract]);
+  }, [address, currentChainId, switchChain, writeContract]);
 
   if (!mounted) return (
     <div className="min-h-screen bg-[#020617] flex items-center justify-center">
@@ -191,6 +206,7 @@ export default function OuwiboBaseApp() {
             <MintView 
               key="mint" 
               isConnected={isConnected} 
+              currentChainId={currentChainId}
               minted={hasMinted} 
               setTxHash={setTxHash} 
               txHash={txHash} 
@@ -278,7 +294,9 @@ function ExploreView({ onNftClick }: any) {
   );
 }
 
-function MintView({ isConnected, minted, setTxHash, txHash, totalSupply, loadingSupply, address, shareToWarpcast, nft, handleMint, mintError, isPending, isConfirming, price }: any) {
+function MintView({ isConnected, currentChainId, minted, setTxHash, txHash, totalSupply, loadingSupply, address, shareToWarpcast, nft, handleMint, mintError, isPending, isConfirming, price }: any) {
+  const wrongNetwork = isConnected && currentChainId !== base.id;
+
   return (
     <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pt-2 text-left pb-8">
       <div className="relative aspect-square w-full max-w-[240px] mx-auto bg-[#0f172a] rounded-2xl overflow-hidden border border-white/5 shadow-xl">
@@ -317,10 +335,10 @@ function MintView({ isConnected, minted, setTxHash, txHash, totalSupply, loading
               <button 
                 disabled={isPending || isConfirming} 
                 onClick={handleMint} 
-                className="w-full bg-gradient-to-r from-primary to-indigo-600 text-white font-black py-3.5 rounded-xl text-[10px] uppercase shadow-lg border-none active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                className={`w-full font-black py-3.5 rounded-xl text-[10px] uppercase shadow-lg border-none active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 ${wrongNetwork ? 'bg-amber-500 text-black' : 'bg-gradient-to-r from-primary to-indigo-600 text-white'}`}
               >
                 {(isPending || isConfirming) && <Loader2 size={12} className="animate-spin" />}
-                {isConfirming ? "CONFIRMING..." : isPending ? "WAITING FOR WALLET..." : "INITIALIZE FREE MINT"}
+                {wrongNetwork ? "SWITCH TO BASE NETWORK" : isConfirming ? "CONFIRMING..." : isPending ? "WAITING FOR WALLET..." : "INITIALIZE FREE MINT"}
               </button>
             ) : (
               <div className="p-6 border border-dashed border-white/10 rounded-xl text-center space-y-4 flex flex-col items-center">
@@ -353,6 +371,24 @@ function MintView({ isConnected, minted, setTxHash, txHash, totalSupply, loading
 }
 
 function ProfileView({ address, userBalance }: any) {
+  const { sendTransaction, isPending } = useSendTransaction();
+
+  const handleDonate = () => {
+    if (!address) return;
+    sendTransaction({
+      to: CREATOR_WALLET as `0x${string}`,
+      value: parseEther("0.001"),
+      chainId: base.id,
+    }, {
+      onSuccess: () => toast.success("Donation Successful", { description: "Thank you for supporting the protocol creator! ☕" }),
+      onError: (err) => {
+        if (!err.message.includes('User rejected')) {
+          toast.error("Donation Failed", { description: "Something went wrong with the transaction." });
+        }
+      }
+    });
+  };
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 pt-2 text-left">
       <div className="relative h-32 bg-slate-900 rounded-3xl overflow-hidden border border-white/5">
@@ -373,6 +409,26 @@ function ProfileView({ address, userBalance }: any) {
           </div>
           <p className="text-2xl font-black italic text-white leading-none">{userBalance === undefined ? '...' : (userBalance?.toString() || '0')}</p>
         </div>
+
+        <button 
+          onClick={handleDonate}
+          disabled={isPending}
+          className="w-full bg-secondary/10 border border-secondary/20 hover:bg-secondary/20 p-4 rounded-2xl flex items-center justify-between transition-all group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-secondary/20 rounded-lg flex items-center justify-center text-secondary">
+              {isPending ? <Loader2 size={18} className="animate-spin" /> : <Coffee size={18} />}
+            </div>
+            <div className="text-left">
+              <p className="text-[7px] font-black text-slate-500 uppercase leading-none">Support Ecosystem</p>
+              <p className="text-xs font-black italic text-white leading-none mt-1 group-hover:text-secondary transition-colors">Buy Creator a Coffee</p>
+            </div>
+          </div>
+          <div className="flex flex-col items-end">
+             <p className="text-xs font-black italic text-secondary leading-none">0.001 ETH</p>
+             <Heart size={10} className="text-secondary mt-1 fill-current animate-pulse" />
+          </div>
+        </button>
       </div>
     </motion.div>
   );

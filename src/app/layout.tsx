@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { RootClientLayout } from '@/components/RootClientLayout'
+import { Toaster } from 'sonner'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -14,6 +15,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: '#020617',
 }
 
 const APP_URL = process.env.NEXT_PUBLIC_VERCEL_URL 
@@ -41,6 +43,14 @@ export const metadata: Metadata = {
   title: 'OUWIBO GENESIS Pass Airdrop Portal',
   description: 'Ouwibo NFT is your premium gateway to the Base network. Mint your Genesis Pass to unlock gasless experiences and $OWB airdrop priority.',
   manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'OUWIBO GENESIS',
+  },
+  formatDetection: {
+    telephone: false,
+  },
   openGraph: {
     title: 'OUWIBO GENESIS Pass Airdrop Portal',
     description: 'Mint your Genesis Pass to unlock exclusive Base ecosystem rewards and $OWB airdrop priority access.',
@@ -72,8 +82,9 @@ export default function RootLayout({
   children,
 }: { children: React.ReactNode }) {
   return (
-    <html lang="id" className={`${inter.variable}`}>
-      <body className="antialiased font-sans bg-black text-white">
+    <html lang="en" className={`${inter.variable}`}>
+      <body className="antialiased font-sans bg-[#020617] text-white">
+        <Toaster position="top-center" richColors theme="dark" />
         <RootClientLayout>
           {children}
         </RootClientLayout>
