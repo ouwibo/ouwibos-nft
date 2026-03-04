@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base } from 'wagmi/chains';
-import { parseEther } from 'viem';
+import { parseEther, parseAbi } from 'viem';
 import { 
   useAccount, 
   useConnect, 
@@ -29,50 +29,12 @@ const CONTRACT_ADDRESS = "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25" as `0x${st
 const CREATOR_WALLET = "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2";
 const TOKEN_ID = 0n; 
 
-// JSON ABI - The most robust format for complex contracts
-const ABI = [
-  {
-    "name": "claim",
-    "type": "function",
-    "stateMutability": "payable",
-    "inputs": [
-      { "type": "address", "name": "_receiver" },
-      { "type": "uint256", "name": "_tokenId" },
-      { "type": "uint256", "name": "_quantity" },
-      { "type": "address", "name": "_currency" },
-      { "type": "uint256", "name": "_pricePerToken" },
-      {
-        "type": "tuple",
-        "name": "_allowlistProof",
-        "components": [
-          { "type": "bytes32[]", "name": "proof" },
-          { "type": "uint256", "name": "quantityLimitPerWallet" },
-          { "type": "uint256", "name": "pricePerToken" },
-          { "type": "address", "name": "currency" }
-        ]
-      },
-      { "type": "bytes", "name": "_data" }
-    ],
-    "outputs": []
-  },
-  {
-    "name": "totalSupply",
-    "type": "function",
-    "stateMutability": "view",
-    "inputs": [{ "type": "uint256", "name": "id" }],
-    "outputs": [{ "type": "uint256" }]
-  },
-  {
-    "name": "balanceOf",
-    "type": "function",
-    "stateMutability": "view",
-    "inputs": [
-      { "type": "address", "name": "account" },
-      { "type": "uint256", "name": "id" }
-    ],
-    "outputs": [{ "type": "uint256" }]
-  }
-] as const;
+// Using parseAbi for the most reliable signature processing
+const ABI = parseAbi([
+  "function claim(address _receiver, uint256 _tokenId, uint256 _quantity, address _currency, uint256 _pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) _allowlistProof, bytes _data) external payable",
+  "function totalSupply(uint256 id) view returns (uint256)",
+  "function balanceOf(address account, uint256 id) view returns (uint256)"
+]);
 
 const NFT_COLLECTION = [
   { 
@@ -112,7 +74,6 @@ export default function OuwiboBaseApp() {
     setMounted(true);
   }, [connectors, connect, isConnected]);
 
-  // Fetch Live Data
   const { data: totalSupply } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: ABI,
@@ -162,27 +123,25 @@ export default function OuwiboBaseApp() {
     }
 
     setMintError(null);
-
-    // EXACT PARAMS FROM JSON
-    const NATIVE_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+    const NATIVE_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' as `0x${string}`;
     
     writeContract({
       address: CONTRACT_ADDRESS,
       abi: ABI,
       functionName: 'claim',
       args: [
-        address,             // _receiver
-        TOKEN_ID,            // _tokenId
-        1n,                  // _quantity
-        NATIVE_TOKEN,        // _currency
-        0n,                  // _pricePerToken
+        address,
+        TOKEN_ID,
+        1n,
+        NATIVE_TOKEN,
+        0n,
         {
           proof: [],
-          quantityLimitPerWallet: 10n, 
-          pricePerToken: 0n,          
-          currency: NATIVE_TOKEN      
+          quantityLimitPerWallet: 10n,
+          pricePerToken: 0n,
+          currency: NATIVE_TOKEN
         },
-        '0x'                 // _data
+        '0x'
       ],
       chainId: base.id,
     });
@@ -212,19 +171,65 @@ export default function OuwiboBaseApp() {
 
       <div className="px-3 pt-3">
         <AnimatePresence mode="wait">
-          {activeTab === 'explore' && <ExploreView onNftClick={() => setActiveTab('mint')} />}
-          {activeTab === 'mint' && (
-            <MintView 
-              isConnected={isConnected} 
-              wrongNetwork={isConnected && currentChainId !== base.id}
-              minted={hasMinted} 
-              totalSupply={totalSupply} 
-              handleMint={handleMint} 
-              mintError={mintError}
-              isPending={isPending || isConfirming}
-            />
+          {activeTab === 'explore' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 text-left">
+              <section className="space-y-2 pb-6 border-b border-white/5">
+                <h1 className="text-4xl font-black italic text-white uppercase leading-none tracking-tighter">OUWIBO <br/> <span className="text-primary">GENESIS.</span></h1>
+                <p className="text-slate-400 text-[10px] font-medium max-w-[250px]">Official digital asset portal for the Ouwibo protocol on Base.</p>
+              </section>
+              <div className="bg-[#0f172a]/40 backdrop-blur-xl border border-white/5 rounded-3xl p-4 flex items-center gap-5 cursor-pointer hover:border-primary/30 transition-all active:scale-95 shadow-xl" onClick={() => setActiveTab('mint')}>
+                <div className="relative w-20 h-20 rounded-2xl overflow-hidden shadow-lg border border-white/10"><Image src="/ouwibo-nft.png" alt="NFT" fill className="object-cover" /></div>
+                <div className="flex-1 space-y-1">
+                  <h3 className="text-lg font-black text-white italic uppercase leading-none">Ouwibo Genesis</h3>
+                  <p className="text-[8px] text-slate-500 font-medium">Utility Access Pass • ERC-1155</p>
+                  <div className="flex items-center gap-1 text-base-emerald text-[7px] font-black uppercase pt-1 tracking-widest"><Zap size={8} className="fill-current" /> Status: Open Mint</div>
+                </div>
+                <ChevronRight size={16} className="text-slate-600" />
+              </div>
+            </motion.div>
           )}
-          {activeTab === 'profile' && <ProfileView address={address} userBalance={userBalance} />}
+          
+          {activeTab === 'mint' && (
+            <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pt-2">
+              <div className="relative aspect-square max-w-[240px] mx-auto bg-[#0f172a] rounded-2xl overflow-hidden shadow-2xl border border-white/5">
+                <Image src="/ouwibo-nft.png" alt="NFT" fill className="object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-60" />
+              </div>
+              <div className="bg-[#0f172a]/40 backdrop-blur-3xl border border-white/5 rounded-2xl p-4 space-y-4 shadow-xl">
+                <div className="flex justify-between border-b border-white/5 pb-3 text-left">
+                  <div><p className="text-[6px] font-black text-slate-500 uppercase tracking-widest">Minting Fee</p><p className="text-sm font-black text-base-emerald uppercase">Free + Gas</p></div>
+                  <div className="text-right"><p className="text-[6px] font-black text-slate-500 uppercase tracking-widest">Total Minted</p><p className="text-sm font-black text-white font-mono">{totalSupply?.toString() || '0'}</p></div>
+                </div>
+                {hasMinted ? (
+                  <div className="bg-base-emerald/10 border border-base-emerald/20 p-3 rounded-xl flex items-center gap-3">
+                    <div className="w-8 h-8 bg-base-emerald rounded-lg flex items-center justify-center shadow-lg"><CheckCircle2 size={18} className="text-black" /></div>
+                    <p className="text-[10px] font-black uppercase text-white leading-none">Genesis Pass Owned</p>
+                  </div>
+                ) : (
+                  <button 
+                    disabled={isPending || isConfirming} 
+                    onClick={handleMint} 
+                    className={`w-full py-3.5 rounded-xl text-[10px] font-black uppercase transition-all shadow-xl flex items-center justify-center gap-2 ${currentChainId !== base.id && isConnected ? 'bg-amber-500 text-black' : 'bg-primary text-white active:scale-95'}`}
+                  >
+                    {(isPending || isConfirming) && <Loader2 size={12} className="animate-spin" />}
+                    {isConnected && currentChainId !== base.id ? "SWITCH TO BASE NETWORK" : (isPending || isConfirming) ? "PROCESSING..." : "INITIALIZE FREE MINT"}
+                  </button>
+                )}
+                {mintError && <p className="text-[8px] text-red-400 uppercase font-black text-center mt-2 italic">{mintError}</p>}
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'profile' && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 text-left">
+              <div className="bg-white/5 border border-white/10 p-4 rounded-2xl flex justify-between items-center shadow-lg">
+                <div><p className="text-[7px] text-slate-500 font-black uppercase tracking-widest leading-none">UTILITY BALANCE</p><p className="text-lg font-black italic text-white mt-1 uppercase leading-none">Genesis Pass</p></div>
+                <p className="text-2xl font-black text-white font-mono">{userBalance?.toString() || '0'}</p>
+              </div>
+              <ProfileView address={address} />
+            </motion.div>
+          )}
+
           {activeTab === 'ai' && <AiChatView />}
         </AnimatePresence>
       </div>
@@ -246,88 +251,25 @@ export default function OuwiboBaseApp() {
   );
 }
 
-function ExploreView({ onNftClick }: any) {
-  return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 text-left">
-      <section className="space-y-2 pb-6 border-b border-white/5">
-        <h1 className="text-4xl font-black italic text-white uppercase leading-none tracking-tighter">OUWIBO <br/> <span className="text-primary">GENESIS.</span></h1>
-        <p className="text-slate-400 text-[10px] font-medium max-w-[250px]">Official digital asset portal for the Ouwibo protocol on Base.</p>
-      </section>
-      <div className="bg-[#0f172a]/40 backdrop-blur-xl border border-white/5 rounded-3xl p-4 flex items-center gap-5 cursor-pointer hover:border-primary/30 transition-all active:scale-95 shadow-xl" onClick={onNftClick}>
-        <div className="relative w-20 h-20 rounded-2xl overflow-hidden shadow-lg border border-white/10"><Image src="/ouwibo-nft.png" alt="NFT" fill className="object-cover" /></div>
-        <div className="flex-1 space-y-1">
-          <h3 className="text-lg font-black text-white italic uppercase leading-none">Ouwibo Genesis</h3>
-          <p className="text-[8px] text-slate-500 font-medium">Utility Access Pass • ERC-1155</p>
-          <div className="flex items-center gap-1 text-base-emerald text-[7px] font-black uppercase pt-1 tracking-widest"><Zap size={8} className="fill-current" /> Status: Open Mint</div>
-        </div>
-        <ChevronRight size={16} className="text-slate-600" />
-      </div>
-    </motion.div>
-  );
-}
-
-function MintView({ isConnected, wrongNetwork, minted, totalSupply, handleMint, mintError, isPending }: any) {
-  return (
-    <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pt-2">
-      <div className="relative aspect-square max-w-[240px] mx-auto bg-[#0f172a] rounded-2xl overflow-hidden shadow-2xl border border-white/5">
-        <Image src="/ouwibo-nft.png" alt="NFT" fill className="object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-60" />
-      </div>
-      <div className="bg-[#0f172a]/40 backdrop-blur-3xl border border-white/5 rounded-2xl p-4 space-y-4 shadow-xl">
-        <div className="flex justify-between border-b border-white/5 pb-3 text-left">
-          <div><p className="text-[6px] font-black text-slate-500 uppercase tracking-widest">Minting Fee</p><p className="text-sm font-black text-base-emerald uppercase">Free + Gas</p></div>
-          <div className="text-right"><p className="text-[6px] font-black text-slate-500 uppercase tracking-widest">Total Minted</p><p className="text-sm font-black text-white font-mono">{totalSupply?.toString() || '0'}</p></div>
-        </div>
-        {minted ? (
-          <div className="bg-base-emerald/10 border border-base-emerald/20 p-3 rounded-xl flex items-center gap-3">
-            <div className="w-8 h-8 bg-base-emerald rounded-lg flex items-center justify-center shadow-lg"><CheckCircle2 size={18} className="text-black" /></div>
-            <p className="text-[10px] font-black uppercase text-white leading-none">Genesis Pass Owned</p>
-          </div>
-        ) : (
-          <button 
-            disabled={isPending} 
-            onClick={handleMint} 
-            className={`w-full py-3.5 rounded-xl text-[10px] font-black uppercase transition-all shadow-xl flex items-center justify-center gap-2 ${wrongNetwork ? 'bg-amber-500 text-black' : 'bg-primary text-white active:scale-95'}`}
-          >
-            {isPending && <Loader2 size={12} className="animate-spin" />}
-            {wrongNetwork ? "SWITCH TO BASE NETWORK" : isPending ? "PROCESSING..." : "INITIALIZE FREE MINT"}
-          </button>
-        )}
-        {mintError && (
-          <div className="mt-2 p-2 bg-red-950/30 border border-red-500/20 rounded-lg">
-            <p className="text-[7px] text-red-400 uppercase font-black text-center leading-tight">{mintError}</p>
-          </div>
-        )}
-      </div>
-    </motion.div>
-  );
-}
-
-function ProfileView({ address, userBalance }: any) {
+function ProfileView({ address }: any) {
   const { sendTransaction, isPending } = useSendTransaction();
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 text-left">
-      <div className="bg-white/5 border border-white/10 p-4 rounded-2xl flex justify-between items-center shadow-lg">
-        <div><p className="text-[7px] text-slate-500 font-black uppercase tracking-widest leading-none">UTILITY BALANCE</p><p className="text-lg font-black italic text-white mt-1 uppercase leading-none">Genesis Pass</p></div>
-        <p className="text-2xl font-black text-white font-mono">{userBalance?.toString() || '0'}</p>
-      </div>
-      <button 
-        disabled={isPending}
-        onClick={() => sendTransaction({ to: CREATOR_WALLET as `0x${string}`, value: parseEther("0.001"), chainId: base.id })}
-        className="w-full bg-secondary/10 border border-secondary/20 p-4 rounded-2xl flex justify-between items-center transition-all hover:bg-secondary/20 group"
-      >
-        <div className="flex gap-3 items-center">
-          <div className="w-10 h-10 bg-secondary/20 rounded-lg flex items-center justify-center text-secondary">
-            {isPending ? <Loader2 size={18} className="animate-spin" /> : <Coffee size={18} />}
-          </div>
-          <div className="text-left">
-            <p className="text-[7px] text-slate-500 font-black uppercase tracking-widest">SUPPORT CREATOR</p>
-            <p className="text-xs font-black text-white italic uppercase leading-none mt-1 group-hover:text-secondary">Buy a Coffee</p>
-          </div>
+    <button 
+      disabled={isPending}
+      onClick={() => sendTransaction({ to: CREATOR_WALLET as `0x${string}`, value: parseEther("0.001"), chainId: base.id })}
+      className="w-full bg-secondary/10 border border-secondary/20 p-4 rounded-2xl flex justify-between items-center transition-all hover:bg-secondary/20 group"
+    >
+      <div className="flex gap-3 items-center">
+        <div className="w-10 h-10 bg-secondary/20 rounded-lg flex items-center justify-center text-secondary">
+          {isPending ? <Loader2 size={18} className="animate-spin" /> : <Coffee size={18} />}
         </div>
-        <p className="text-xs font-black text-secondary font-mono">0.001 ETH</p>
-      </button>
-    </motion.div>
+        <div className="text-left">
+          <p className="text-[7px] text-slate-500 font-black uppercase tracking-widest">SUPPORT CREATOR</p>
+          <p className="text-xs font-black text-white italic uppercase leading-none mt-1 group-hover:text-secondary">Buy a Coffee</p>
+        </div>
+      </div>
+      <p className="text-xs font-black text-secondary font-mono">0.001 ETH</p>
+    </button>
   );
 }
 
