@@ -29,25 +29,13 @@ const CONTRACT_ADDRESS = "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25" as `0x${st
 const CREATOR_WALLET = "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2";
 const TOKEN_ID = 0n; 
 
-// Full Thirdweb ERC-1155 ABI for precision
+// Refined ABI for Thirdweb DropERC1155
 const ABI = ([
   "function claim(address receiver, uint256 tokenId, uint256 quantity, address currency, uint256 pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) allowlistProof, bytes data) external payable",
   "function totalSupply(uint256 id) view returns (uint256)",
   "function balanceOf(address account, uint256 id) view returns (uint256)",
   "function getActiveClaimCondition(uint256 tokenId) view returns (tuple(uint256 startTimestamp, uint256 maxClaimableSupply, uint256 supplyClaimed, uint256 quantityLimitPerWallet, uint256 waitTimeInSecondsBetweenClaims, bytes32 merkleRoot, uint256 pricePerToken, address currency, string metadata))"
 ]);
-
-const NFT_COLLECTION = [
-  { 
-    id: TOKEN_ID, 
-    name: "Ouwibo Genesis", 
-    tier: "Legendary", 
-    supply: 6969, 
-    image: "/ouwibo-nft.png", 
-    tagline: "The Ultimate Protocol Access",
-    desc: "The primary pass launched within the Ouwibo ecosystem. It provides priority protocol decision-making rights, $OWB token allocations, and access to infrastructure nodes." 
-  }
-];
 
 export default function OuwiboBaseApp() {
   const { address, isConnected } = useAccount();
@@ -56,7 +44,6 @@ export default function OuwiboBaseApp() {
   const { switchChain } = useSwitchChain();
   
   const [activeTab, setActiveTab] = useState<'explore' | 'mint' | 'profile' | 'ai'>('explore');
-  const [selectedNftId, setSelectedNftId] = useState<bigint>(TOKEN_ID);
   const [minted, setMinted] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -76,8 +63,6 @@ export default function OuwiboBaseApp() {
     setMounted(true);
   }, [connectors, connect, isConnected]);
 
-  const selectedNft = NFT_COLLECTION.find(n => n.id === selectedNftId) || NFT_COLLECTION[0];
-
   // Fetch Live Data from Contract
   const { data: totalSupply } = useReadContract({
     address: CONTRACT_ADDRESS,
@@ -95,7 +80,7 @@ export default function OuwiboBaseApp() {
     chainId: base.id,
   });
 
-  const { data: activeCondition } = useReadContract({
+  const { data: activeCondition, isLoading: loadingCondition } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: ABI,
     functionName: 'getActiveClaimCondition',
@@ -119,10 +104,10 @@ export default function OuwiboBaseApp() {
 
   useEffect(() => {
     if (writeError) {
-      console.error("DEBUG - REASON:", writeError);
-      let msg = "Minting failed. Simulation might have failed.";
+      console.error("BLOCKCHAIN ERROR:", writeError);
+      let msg = "Minting failed. Simulation failed.";
       if (writeError.message.includes('User rejected')) msg = "Transaction rejected.";
-      else if (writeError.message.includes('insufficient funds')) msg = "Insufficient ETH.";
+      else if (writeError.message.includes('insufficient funds')) msg = "Insufficient ETH for gas.";
       
       setMintError(msg);
       toast.error("Error", { description: msg });
@@ -130,7 +115,11 @@ export default function OuwiboBaseApp() {
   }, [writeError]);
 
   const handleMint = useCallback(() => {
-    if (!address) return;
+    if (!address || !activeCondition) {
+      toast.error("Contract data not loaded yet. Please wait.");
+      return;
+    }
+    
     if (currentChainId !== base.id) {
       switchChain({ chainId: base.id });
       return;
@@ -138,10 +127,11 @@ export default function OuwiboBaseApp() {
 
     setMintError(null);
 
-    // Default values if activeCondition is not yet loaded
-    const price = activeCondition ? (activeCondition as any).pricePerToken : 0n;
-    const currency = activeCondition ? (activeCondition as any).currency : '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
-    const limit = activeCondition ? (activeCondition as any).quantityLimitPerWallet : BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935");
+    // EXTRACT EXACT VALUES FROM CONTRACT
+    const cond = activeCondition as any;
+    const price = cond.pricePerToken;
+    const currency = cond.currency;
+    const limit = cond.quantityLimitPerWallet;
 
     writeContract({
       address: CONTRACT_ADDRESS,
@@ -155,9 +145,9 @@ export default function OuwiboBaseApp() {
         price,
         {
           proof: [],
-          quantityLimitPerWallet: limit,
-          pricePerToken: price,
-          currency: currency
+          quantityLimitPerWallet: limit, // MUST match the active condition exactly
+          pricePerToken: price,          // MUST match the active condition exactly
+          currency: currency             // MUST match the active condition exactly
         },
         '0x'
       ],
@@ -189,11 +179,11 @@ export default function OuwiboBaseApp() {
               wrongNetwork={isConnected && currentChainId !== base.id}
               minted={hasMinted} 
               totalSupply={totalSupply} 
-              nft={selectedNft} 
               handleMint={handleMint} 
               mintError={mintError}
               isPending={isPending || isConfirming}
-              price={activeCondition ? (Number((activeCondition as any).pricePerToken) / 1e18).toString() : "0"}
+              price={activeCondition ? (Number((activeCondition as any).pricePerToken) / 1e18).toString() : "..."}
+              loading={loadingCondition}
             />
           )}
           {activeTab === 'profile' && <ProfileView address={address} userBalance={userBalance} />}
@@ -237,15 +227,15 @@ function ExploreView({ onNftClick }: any) {
   );
 }
 
-function MintView({ isConnected, wrongNetwork, minted, totalSupply, nft, handleMint, mintError, isPending, price }: any) {
+function MintView({ isConnected, wrongNetwork, minted, totalSupply, handleMint, mintError, isPending, price, loading }: any) {
   return (
     <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pt-2">
-      <div className="relative aspect-square max-w-[240px] mx-auto bg-[#0f172a] rounded-2xl overflow-hidden">
-        <Image src={nft.image} alt="NFT" fill />
+      <div className="relative aspect-square max-w-[240px] mx-auto bg-[#0f172a] rounded-2xl overflow-hidden shadow-2xl">
+        <Image src="/ouwibo-nft.png" alt="NFT" fill />
       </div>
       <div className="bg-[#0f172a]/40 border border-white/5 rounded-2xl p-4 space-y-4">
         <div className="flex justify-between border-b border-white/5 pb-3 text-left">
-          <div><p className="text-[6px] font-black text-slate-500 uppercase">Fee</p><p className="text-sm font-black text-base-emerald">{price === "0" ? "Free" : `${price} ETH`}</p></div>
+          <div><p className="text-[6px] font-black text-slate-500 uppercase">Fee</p><p className="text-sm font-black text-base-emerald">{loading ? '...' : price === "0" ? "Free" : `${price} ETH`}</p></div>
           <div className="text-right"><p className="text-[6px] font-black text-slate-500 uppercase">Minted</p><p className="text-sm font-black text-white">{totalSupply?.toString() || '0'}</p></div>
         </div>
         {minted ? (
@@ -255,12 +245,12 @@ function MintView({ isConnected, wrongNetwork, minted, totalSupply, nft, handleM
           </div>
         ) : (
           <button 
-            disabled={isPending} 
+            disabled={isPending || loading} 
             onClick={handleMint} 
-            className={`w-full py-3.5 rounded-xl text-[10px] font-black uppercase ${wrongNetwork ? 'bg-amber-500' : 'bg-primary text-white'}`}
+            className={`w-full py-3.5 rounded-xl text-[10px] font-black uppercase transition-all ${wrongNetwork ? 'bg-amber-500' : 'bg-primary text-white active:scale-95'}`}
           >
             {isPending ? <Loader2 size={12} className="animate-spin inline mr-2" /> : null}
-            {wrongNetwork ? "SWITCH TO BASE" : isPending ? "PROCESSING..." : "INITIALIZE MINT"}
+            {loading ? "FETCHING CONTRACT..." : wrongNetwork ? "SWITCH TO BASE" : isPending ? "WAITING..." : "INITIALIZE MINT"}
           </button>
         )}
         {mintError && <p className="text-[8px] text-red-400 uppercase font-black text-center">{mintError}</p>}
@@ -270,7 +260,7 @@ function MintView({ isConnected, wrongNetwork, minted, totalSupply, nft, handleM
 }
 
 function ProfileView({ address, userBalance }: any) {
-  const { sendTransaction, isPending } = useSendTransaction();
+  const { sendTransaction } = useSendTransaction();
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 text-left">
       <div className="bg-white/5 border border-white/10 p-4 rounded-2xl flex justify-between items-center">
@@ -289,5 +279,5 @@ function ProfileView({ address, userBalance }: any) {
 }
 
 function AiChatView() {
-  return <div className="h-[60vh] flex items-center justify-center italic text-slate-500 text-xs">Ouwibo AI core online. Ask anything...</div>;
+  return <div className="h-[60vh] flex items-center justify-center italic text-slate-500 text-xs">AI Core Online.</div>;
 }
