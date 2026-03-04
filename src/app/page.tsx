@@ -79,6 +79,16 @@ export default function OuwiboBaseApp() {
     chainId: base.id,
   });
 
+  const { data: userBalance, refetch: refetchBalance } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: ABI,
+    functionName: 'balanceOf',
+    args: [address || "0x0000000000000000000000000000000000000000"],
+    chainId: base.id,
+  });
+
+  const hasMinted = minted || (userBalance !== undefined && (userBalance as bigint) > 0n);
+
   const handleViewNft = (id: bigint) => {
     setSelectedNftId(id);
     setActiveTab('mint');
@@ -99,8 +109,9 @@ export default function OuwiboBaseApp() {
     if (isConfirmed) {
       setMinted(true);
       setTxHash(hash || null);
+      refetchBalance();
     }
-  }, [isConfirmed, hash]);
+  }, [isConfirmed, hash, refetchBalance]);
 
   useEffect(() => {
     if (writeError) {
@@ -174,8 +185,7 @@ export default function OuwiboBaseApp() {
             <MintView 
               key="mint" 
               isConnected={isConnected} 
-              minted={minted} 
-              setMinted={setMinted} 
+              minted={hasMinted} 
               setTxHash={setTxHash} 
               txHash={txHash} 
               totalSupply={totalSupply} 
@@ -189,7 +199,7 @@ export default function OuwiboBaseApp() {
               isConfirming={isConfirming}
             />
           )}
-          {activeTab === 'profile' && <ProfileView key="profile" address={address} />}
+          {activeTab === 'profile' && <ProfileView key="profile" address={address} userBalance={userBalance} />}
           {activeTab === 'ai' && <AiChatView key="ai" />}
         </AnimatePresence>
       </div>
@@ -261,7 +271,7 @@ function ExploreView({ onNftClick }: any) {
   );
 }
 
-function MintView({ isConnected, minted, setMinted, setTxHash, txHash, totalSupply, loadingSupply, address, shareToWarpcast, nft, handleMint, mintError, isPending, isConfirming }: any) {
+function MintView({ isConnected, minted, setTxHash, txHash, totalSupply, loadingSupply, address, shareToWarpcast, nft, handleMint, mintError, isPending, isConfirming }: any) {
   return (
     <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pt-2 text-left pb-8">
       <div className="relative aspect-square w-full max-w-[240px] mx-auto bg-[#0f172a] rounded-2xl overflow-hidden border border-white/5 shadow-xl">
@@ -319,8 +329,9 @@ function MintView({ isConnected, minted, setMinted, setTxHash, txHash, totalSupp
                   <CheckCircle2 size={18} className="text-black" />
                 </div>
                 <div className="text-left">
-                  <h4 className="text-[10px] font-black uppercase text-white leading-none">Mint Successful</h4>
-                  <a href={`https://basescan.org/tx/${txHash}`} target="_blank" className="text-[6px] font-bold text-secondary uppercase hover:underline leading-none">Explorer Receipt ↗</a>
+                  <h4 className="text-[10px] font-black uppercase text-white leading-none">Genesis Pass Owned</h4>
+                  <p className="text-[6px] font-bold text-slate-400 uppercase leading-none mt-1">Ready for $OWB Protocol Rewards</p>
+                  {txHash && <a href={`https://basescan.org/tx/${txHash}`} target="_blank" className="text-[6px] font-bold text-secondary uppercase hover:underline leading-none mt-2 block">Explorer Receipt ↗</a>}
                 </div>
               </div>
               <button onClick={shareToWarpcast} className="w-full bg-white text-black font-black py-3 rounded-xl text-[8px] uppercase tracking-widest shadow-xl">
@@ -334,15 +345,7 @@ function MintView({ isConnected, minted, setMinted, setTxHash, txHash, totalSupp
   );
 }
 
-function ProfileView({ address }: any) {
-  const { data: balance, isLoading } = useReadContract({
-    address: CONTRACT_ADDRESS,
-    abi: ABI,
-    functionName: 'balanceOf',
-    args: [address || "0x0000000000000000000000000000000000000000"],
-    chainId: base.id,
-  });
-
+function ProfileView({ address, userBalance }: any) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 pt-2 text-left">
       <div className="relative h-32 bg-slate-900 rounded-3xl overflow-hidden border border-white/5">
@@ -361,7 +364,7 @@ function ProfileView({ address }: any) {
             <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center text-primary"><Zap size={20} /></div>
             <div><p className="text-[7px] font-black text-slate-500 uppercase leading-none">Utility Balance</p><p className="text-lg font-black italic text-white leading-none mt-1">Genesis Pass</p></div>
           </div>
-          <p className="text-2xl font-black italic text-white leading-none">{isLoading ? '...' : (balance?.toString() || '0')}</p>
+          <p className="text-2xl font-black italic text-white leading-none">{userBalance === undefined ? '...' : (userBalance?.toString() || '0')}</p>
         </div>
       </div>
     </motion.div>
