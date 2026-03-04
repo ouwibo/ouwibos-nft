@@ -34,7 +34,8 @@ const TOKEN_ID = 0n;
 const ABI = ([
   "function claim(address receiver, uint256 tokenId, uint256 quantity, address currency, uint256 pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) allowlistProof, bytes data) external payable",
   "function totalSupply(uint256 id) view returns (uint256)",
-  "function balanceOf(address account, uint256 id) view returns (uint256)"
+  "function balanceOf(address account, uint256 id) view returns (uint256)",
+  "function getActiveClaimCondition(uint256 tokenId) view returns ((uint256 startTimestamp, uint256 maxClaimableSupply, uint256 supplyClaimed, uint256 quantityLimitPerWallet, uint256 waitTimeInSecondsBetweenClaims, bytes32 merkleRoot, uint256 pricePerToken, address currency, string metadata))"
 ]);
 
 const NFT_COLLECTION = [
@@ -150,40 +151,48 @@ export default function OuwiboBaseApp() {
     }
   }, [writeError]);
 
+  const { data: activeClaimCondition } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: ABI,
+    functionName: 'getActiveClaimCondition',
+    args: [TOKEN_ID],
+    chainId: base.id,
+  }) as any;
+
+  const currentPrice = activeClaimCondition ? activeClaimCondition.pricePerToken : parseEther(MINT_PRICE);
+
   const handleMint = useCallback(() => {
     if (!address) return;
     
-    // Check Chain
     if (currentChainId !== base.id) {
       switchChain({ chainId: base.id });
       return;
     }
 
     setMintError(null);
-    const price = parseEther(MINT_PRICE);
 
-    // ERC-1155 Drop claim - Optimized parameters
     writeContract({
       address: CONTRACT_ADDRESS,
       abi: ABI,
       functionName: 'claim',
       args: [
-        address,             // _receiver
-        TOKEN_ID,            // _tokenId
-        1n,                  // _quantity
-        '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // _currency (Native ETH)
-        price,               // _pricePerToken
+        address,
+        TOKEN_ID,
+        1n,
+        '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+        currentPrice,
         {
-          proof: [],         // _allowlistProof
-          quantityLimitPerWallet: 0n, // '0' tells the contract to use the default condition limit
-          pricePerToken: price, 
-          currency: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' 
+          proof: [],
+          quantityLimitPerWallet: BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935"),
+          pricePerToken: currentPrice,
+          currency: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
         },
-        '0x'                 // _data
+        '0x'
       ],
+      value: currentPrice > 0n ? currentPrice : 0n,
       chainId: base.id,
     });
-  }, [address, currentChainId, switchChain, writeContract]);
+  }, [address, currentChainId, switchChain, writeContract, currentPrice]);
 
   if (!mounted) return (
     <div className="min-h-screen bg-[#020617] flex items-center justify-center">
