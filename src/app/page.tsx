@@ -9,7 +9,7 @@ import {
   ArrowUpRight, Share2, Globe, Twitter, Github, ChevronDown, Clock, Tag, RefreshCw, ChevronRight,
   Bot, Send, MessageSquare, Sparkles
 } from 'lucide-react';
-import sdk from "@farcaster/frame-sdk";
+import sdk from "@farcaster/miniapp-sdk";
 import { 
   useAccount, 
   useConnect, 

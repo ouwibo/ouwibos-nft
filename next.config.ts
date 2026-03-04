@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
     ],
   },
   output: 'standalone',
-  transpilePackages: ['motion'],
+  transpilePackages: ['motion', 'derive-valtio', 'valtio'],
   async headers() {
     return [
       {
