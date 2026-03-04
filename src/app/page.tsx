@@ -4,7 +4,13 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base } from 'wagmi/chains';
-import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { 
+  useAccount, 
+  useConnect, 
+  useReadContract, 
+  useWriteContract, 
+  useWaitForTransactionReceipt 
+} from 'wagmi';
 import { 
   LayoutGrid, User, Loader2, 
   AlertCircle, ShieldCheck, Zap, CheckCircle2,
@@ -148,8 +154,8 @@ export default function OuwiboBaseApp() {
 
       <header className="sticky top-0 z-50 px-3 py-2.5 backdrop-blur-xl border-b border-white/5 bg-[#020617]/80 flex items-center justify-between">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('explore')}>
-          <div className="w-7 h-7 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center shadow-lg">
-            <Zap className="text-white fill-current" size={14} />
+          <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-white/10 shadow-lg bg-[#0f172a]">
+            <Image src="/ouwibo-nft.png" alt="Ouwibo Logo" fill className="object-cover" />
           </div>
           <div className="text-left">
             <h1 className="font-black text-xs tracking-tighter text-white leading-none">OUWIBO</h1>
@@ -484,5 +490,3 @@ function AiChatView() {
     </motion.div>
   );
 }
-
-import { useAccount, useConnect } from 'wagmi';
