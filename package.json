@@ -16,6 +16,7 @@
     "@rainbow-me/rainbowkit": "^2.2.10",
     "@tanstack/react-query": "^5.90.21",
     "@thirdweb-dev/sdk": "^4.0.51",
+    "@vercel/analytics": "^1.6.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.34.3",
     "lucide-react": "^0.446.0",
