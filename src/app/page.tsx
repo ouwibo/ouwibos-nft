@@ -24,7 +24,7 @@ import { toast } from 'sonner';
 import sdk from "@farcaster/miniapp-sdk";
 import { WalletConnector } from '@/components/WalletConnector';
 
-// DYNAMIC CONFIG FROM ENV
+// Constants
 const CONTRACT_ADDRESS = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0x075Bb11C9eeEfdd7b5AF5244Df2fb1f08BfA4146") as `0x${string}`;
 const CREATOR_WALLET = "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2";
 const DEFAULT_IMAGE = "https://ipfs.io/ipfs/QmQNxT4Q2C8yAzjLR7Dq87VLeV7idwoH7rbPFWJVHv9zX2/0.jpg";
@@ -102,7 +102,6 @@ interface NFTMetadata {
   name: string;
   image: string;
   description: string;
-  tagline: string;
 }
 
 export default function OuwiboBaseApp() {
@@ -119,6 +118,7 @@ export default function OuwiboBaseApp() {
   const [collection, setCollection] = useState<NFTMetadata[]>([]);
   const [loadingCollection, setLoadingCollection] = useState(true);
 
+  // Initial Fetch
   useEffect(() => {
     const init = async () => {
       try {
@@ -137,33 +137,28 @@ export default function OuwiboBaseApp() {
   const fetchCollection = async () => {
     try {
       const response = await fetch('/api/collection');
+      if (!response.ok) throw new Error("API Failure");
+      
       const data = await response.json();
       
       if (data && Array.isArray(data) && data.length > 0) {
         const items: NFTMetadata[] = data.map((event: any) => ({
-          id: BigInt(event.data.startTokenId),
+          id: BigInt(event.data.startTokenId || 0),
           name: "Ouwibo Crypto",
           image: DEFAULT_IMAGE,
-          description: "The official crypto pass for the Ouwibo ecosystem.",
-          tagline: "Unlimited Access"
+          description: "Official Ouwibo Crypto Access Pass."
         }));
         setCollection(items);
       } else {
-        setCollection([{
-          id: 0n,
-          name: "Ouwibo Crypto",
-          image: DEFAULT_IMAGE,
-          description: "The official crypto pass for the Ouwibo ecosystem.",
-          tagline: "The Ultimate Protocol Access"
-        }]);
+        throw new Error("Empty collection");
       }
     } catch (err) {
+      console.warn("Using fallback collection data");
       setCollection([{
         id: 0n,
         name: "Ouwibo Crypto",
         image: DEFAULT_IMAGE,
-        description: "The official crypto pass for the Ouwibo ecosystem.",
-        tagline: "The Ultimate Protocol Access"
+        description: "Official Ouwibo Crypto Access Pass."
       }]);
     } finally {
       setLoadingCollection(false);
@@ -253,7 +248,7 @@ export default function OuwiboBaseApp() {
           <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-[#0f172a] border border-white/10">
             <Image src={DEFAULT_IMAGE} alt="Logo" fill className="object-cover" />
           </div>
-          <h1 className="font-black text-xs text-white">OUWIBO</h1>
+          <h1 className="font-black text-xs text-white uppercase tracking-tighter">OUWIBO</h1>
         </div>
         <div className="scale-75 origin-right"><WalletConnector /></div>
       </header>
@@ -272,11 +267,11 @@ export default function OuwiboBaseApp() {
                   <div className="flex items-center justify-center p-12"><Loader2 className="animate-spin text-primary" size={24} /></div>
                 ) : (
                   collection.map((nft) => (
-                    <div key={nft.id.toString()} className="bg-[#0f172a]/40 backdrop-blur-xl border border-white/5 rounded-3xl p-4 flex items-center gap-5 cursor-pointer shadow-xl" onClick={() => { setSelectedNftId(nft.id); setActiveTab('mint'); }}>
-                      <div className="relative w-20 h-20 rounded-2xl overflow-hidden"><Image src={nft.image} alt={nft.name} fill className="object-cover" /></div>
+                    <div key={nft.id.toString()} className="bg-[#0f172a]/40 backdrop-blur-xl border border-white/5 rounded-3xl p-4 flex items-center gap-5 cursor-pointer shadow-xl active:scale-95 transition-all" onClick={() => { setSelectedNftId(nft.id); setActiveTab('mint'); }}>
+                      <div className="relative w-20 h-20 rounded-2xl overflow-hidden border border-white/10"><Image src={nft.image} alt={nft.name} fill className="object-cover" /></div>
                       <div className="flex-1">
                         <h3 className="text-lg font-black text-white italic uppercase leading-none">{nft.name}</h3>
-                        <p className="text-[8px] text-slate-500 font-medium italic mt-1">ID #{nft.id.toString()}</p>
+                        <p className="text-[8px] text-slate-500 font-medium italic mt-1">TOKEN ID #{nft.id.toString()}</p>
                         <div className="flex items-center gap-1 text-base-emerald text-[7px] font-black uppercase pt-2"><Zap size={8} className="fill-current" /> Status: Live</div>
                       </div>
                       <ChevronRight size={16} className="text-slate-600" />
@@ -295,7 +290,7 @@ export default function OuwiboBaseApp() {
               </div>
               <div className="bg-[#0f172a]/40 backdrop-blur-3xl border border-white/5 rounded-2xl p-4 space-y-4 shadow-xl">
                 <div className="flex justify-between border-b border-white/5 pb-3 text-left">
-                  <div><p className="text-[6px] font-black text-slate-500 uppercase tracking-widest">Minting Fee</p><p className="text-sm font-black text-base-emerald uppercase">FREE + GAS</p></div>
+                  <div><p className="text-[6px] font-black text-slate-500 uppercase tracking-widest">Minting Fee</p><p className="text-sm font-black text-base-emerald uppercase tracking-tight">FREE + GAS</p></div>
                   <div className="text-right"><p className="text-[6px] font-black text-slate-500 uppercase tracking-widest">Available</p><p className="text-sm font-black text-white font-mono">{totalSupply?.toString() || '0'} / 6969</p></div>
                 </div>
                 {hasMinted ? (
@@ -318,7 +313,7 @@ export default function OuwiboBaseApp() {
                     {isConnected && currentChainId !== base.id ? "SWITCH TO BASE" : (isPending || isConfirming) ? "PROCESSING..." : "INITIALIZE FREE MINT"}
                   </button>
                 )}
-                {mintError && <p className="text-[8px] text-red-400 uppercase font-black text-center mt-2 italic">{mintError}</p>}
+                {mintError && <p className="text-[8px] text-red-400 uppercase font-black text-center mt-2 italic leading-relaxed">{mintError}</p>}
               </div>
             </motion.div>
           )}
@@ -380,7 +375,7 @@ function AiChatView() {
   return (
     <div className="h-[60vh] flex flex-col items-center justify-center text-center p-6 text-slate-500">
       <Bot size={40} className="text-primary mb-4 animate-pulse opacity-20" />
-      <p className="italic text-[10px] max-w-[200px]">System ready.</p>
+      <p className="italic text-[10px] max-w-[200px] leading-relaxed">System ready for decryption.</p>
     </div>
   );
 }
