@@ -30,7 +30,7 @@ const miniAppConfig = {
     title: "Launch Ouwibo",
     action: {
       type: "launch_frame",
-      name: "OUWIBO GENESIS",
+      name: "OUWIBO CRYPTO",
       url: APP_URL,
       splashImageUrl: `${APP_URL}/loading.svg`,
       splashBackgroundColor: "#020617",
@@ -41,28 +41,28 @@ const miniAppConfig = {
 const stringifiedConfig = JSON.stringify(miniAppConfig);
 
 export const metadata: Metadata = {
-  title: 'OUWIBO GENESIS Pass Airdrop Portal',
-  description: 'Ouwibo NFT is your premium gateway to the Base network. Mint your Genesis Pass to unlock gasless experiences and $OWB airdrop priority.',
+  title: 'OUWIBO CRYPTO Airdrop Portal',
+  description: 'Ouwibo Crypto is your premium gateway to the Base network. Mint your Crypto Pass to unlock gasless experiences and $OWB airdrop priority.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'OUWIBO GENESIS',
+    title: 'OUWIBO CRYPTO',
   },
   formatDetection: {
     telephone: false,
   },
   openGraph: {
-    title: 'OUWIBO GENESIS Pass Airdrop Portal',
-    description: 'Mint your Genesis Pass to unlock exclusive Base ecosystem rewards and $OWB airdrop priority access.',
+    title: 'OUWIBO CRYPTO Airdrop Portal',
+    description: 'Mint your Crypto Pass to unlock exclusive Base ecosystem rewards and $OWB airdrop priority access.',
     url: APP_URL,
-    siteName: 'OUWIBO GENESIS',
+    siteName: 'OUWIBO CRYPTO',
     images: [
       {
         url: `${APP_URL}/ouwibo-nft.png`,
         width: 1200,
         height: 800,
-        alt: 'OUWIBO GENESIS Preview',
+        alt: 'OUWIBO CRYPTO Preview',
       },
     ],
     locale: 'en_US',

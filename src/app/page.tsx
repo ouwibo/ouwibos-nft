@@ -142,28 +142,27 @@ export default function OuwiboBaseApp() {
       if (data && Array.isArray(data) && data.length > 0) {
         const items: NFTMetadata[] = data.map((event: any) => ({
           id: BigInt(event.data.startTokenId),
-          name: "Ouwibo Genesis",
+          name: "Ouwibo Crypto",
           image: DEFAULT_IMAGE,
-          description: "The primary pass for the Ouwibo ecosystem.",
+          description: "The official crypto pass for the Ouwibo ecosystem.",
           tagline: "Unlimited Access"
         }));
         setCollection(items);
       } else {
-        // Default item if API returns nothing
         setCollection([{
           id: 0n,
-          name: "Ouwibo Genesis",
+          name: "Ouwibo Crypto",
           image: DEFAULT_IMAGE,
-          description: "The primary pass for the Ouwibo ecosystem.",
+          description: "The official crypto pass for the Ouwibo ecosystem.",
           tagline: "The Ultimate Protocol Access"
         }]);
       }
     } catch (err) {
       setCollection([{
         id: 0n,
-        name: "Ouwibo Genesis",
+        name: "Ouwibo Crypto",
         image: DEFAULT_IMAGE,
-        description: "The primary pass for the Ouwibo ecosystem.",
+        description: "The official crypto pass for the Ouwibo ecosystem.",
         tagline: "The Ultimate Protocol Access"
       }]);
     } finally {
@@ -230,7 +229,7 @@ export default function OuwiboBaseApp() {
         0n,
         {
           proof: [],
-          quantityLimitPerWallet: BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935"), // Unlimited
+          quantityLimitPerWallet: MAX_UINT256,
           pricePerToken: 0n,
           currency: NATIVE_TOKEN
         },
@@ -264,7 +263,7 @@ export default function OuwiboBaseApp() {
           {activeTab === 'explore' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 text-left">
               <section className="space-y-2 pb-6 border-b border-white/5">
-                <h1 className="text-4xl font-black italic text-white uppercase leading-none tracking-tighter">OUWIBO <br/> <span className="text-primary">GENESIS.</span></h1>
+                <h1 className="text-4xl font-black italic text-white uppercase leading-none tracking-tighter">OUWIBO <br/> <span className="text-primary">CRYPTO.</span></h1>
                 <p className="text-slate-400 text-[10px]">Official digital asset portal for the Ouwibo protocol on Base.</p>
               </section>
               
@@ -290,19 +289,19 @@ export default function OuwiboBaseApp() {
           
           {activeTab === 'mint' && (
             <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pt-2">
-              <div className="relative aspect-square max-w-[240px] mx-auto bg-[#0f172a] rounded-2xl overflow-hidden shadow-2xl">
+              <div className="relative aspect-square max-w-[240px] mx-auto bg-[#0f172a] rounded-2xl overflow-hidden shadow-2xl border border-white/5">
                 <Image src={collection.find(n => n.id === selectedNftId)?.image || DEFAULT_IMAGE} alt="NFT" fill className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-60" />
               </div>
               <div className="bg-[#0f172a]/40 backdrop-blur-3xl border border-white/5 rounded-2xl p-4 space-y-4 shadow-xl">
                 <div className="flex justify-between border-b border-white/5 pb-3 text-left">
-                  <div><p className="text-[6px] font-black text-slate-500 uppercase">Fee</p><p className="text-sm font-black text-base-emerald uppercase">FREE + GAS</p></div>
-                  <div className="text-right"><p className="text-[6px] font-black text-slate-500 uppercase">Available</p><p className="text-sm font-black text-white font-mono">{totalSupply?.toString() || '0'} / 6969</p></div>
+                  <div><p className="text-[6px] font-black text-slate-500 uppercase tracking-widest">Minting Fee</p><p className="text-sm font-black text-base-emerald uppercase">FREE + GAS</p></div>
+                  <div className="text-right"><p className="text-[6px] font-black text-slate-500 uppercase tracking-widest">Available</p><p className="text-sm font-black text-white font-mono">{totalSupply?.toString() || '0'} / 6969</p></div>
                 </div>
                 {hasMinted ? (
                   <div className="bg-base-emerald/10 border border-base-emerald/20 p-3 rounded-xl flex items-center gap-3">
                     <div className="w-8 h-8 bg-base-emerald rounded-lg flex items-center justify-center shadow-lg"><CheckCircle2 size={18} className="text-black" /></div>
-                    <p className="text-[10px] font-black uppercase text-white leading-none">Genesis Pass Owned</p>
+                    <p className="text-[10px] font-black uppercase text-white leading-none">Crypto Pass Owned</p>
                   </div>
                 ) : !isStarted ? (
                   <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl flex flex-col items-center gap-2 text-center">
@@ -327,7 +326,7 @@ export default function OuwiboBaseApp() {
           {activeTab === 'profile' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 text-left">
               <div className="bg-white/5 border border-white/10 p-4 rounded-2xl flex justify-between items-center shadow-lg">
-                <div><p className="text-[7px] text-slate-500 font-black uppercase tracking-widest leading-none">UTILITY BALANCE</p><p className="text-lg font-black italic text-white mt-1 uppercase leading-none">Genesis Pass</p></div>
+                <div><p className="text-[7px] text-slate-500 font-black uppercase tracking-widest leading-none">UTILITY BALANCE</p><p className="text-lg font-black italic text-white mt-1 uppercase leading-none">Crypto Pass</p></div>
                 <p className="text-2xl font-black text-white font-mono">{userBalance?.toString() || '0'}</p>
               </div>
               <ProfileView address={address} />

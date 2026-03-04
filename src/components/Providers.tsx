@@ -13,7 +13,7 @@ import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
 
 const config = getDefaultConfig({
-  appName: 'OUWIBO GENESIS',
+  appName: 'OUWIBO CRYPTO',
   projectId: 'YOUR_PROJECT_ID', // Recommended: Replace with your actual WalletConnect project ID
   chains: [base],
   ssr: true,
