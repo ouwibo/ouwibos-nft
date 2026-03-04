@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base } from 'wagmi/chains';
+import { parseEther } from 'viem';
 import { 
   useAccount, 
   useConnect, 
@@ -21,6 +22,9 @@ import { WalletConnector } from '@/components/WalletConnector';
 
 // Constants
 const CONTRACT_ADDRESS = "0x69A11773Dce51E894f97278F3d40Aae8efEde91f" as `0x${string}`;
+const MINT_PRICE = "0.000777"; // Standard Live Mint Price
+const CREATOR_WALLET = "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2";
+
 const ABI = ([
   "function claim(address receiver, uint256 quantity, address currency, uint256 pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) allowlistProof, bytes data) external payable",
   "function totalSupply() view returns (uint256)",
@@ -116,7 +120,7 @@ export default function OuwiboBaseApp() {
   useEffect(() => {
     if (writeError) {
       console.error("Write Error:", writeError);
-      setMintError(writeError.message.includes('User rejected') ? 'Transaction rejected by user' : 'Minting failed. Simulation might have failed.');
+      setMintError(writeError.message.includes('User rejected') ? 'Transaction rejected by user' : 'Minting failed. Ensure you have enough ETH for the fee.');
     }
   }, [writeError]);
 
@@ -124,7 +128,9 @@ export default function OuwiboBaseApp() {
     if (!address) return;
     setMintError(null);
 
-    // ERC-721 Drop claim
+    const price = parseEther(MINT_PRICE);
+
+    // ERC-721/1155 Drop claim with value
     writeContract({
       address: CONTRACT_ADDRESS,
       abi: ABI,
@@ -133,15 +139,16 @@ export default function OuwiboBaseApp() {
         address,             // _receiver
         1n,                  // _quantity
         '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // _currency (Native ETH)
-        0n,                  // _pricePerToken (Free)
+        price,               // _pricePerToken
         {
           proof: [],         // _allowlistProof
-          quantityLimitPerWallet: BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935"), // Max uint256
-          pricePerToken: 0n, // Price in proof
-          currency: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' // Currency in proof
+          quantityLimitPerWallet: BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935"), 
+          pricePerToken: price, 
+          currency: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' 
         },
         '0x'                 // _data
       ],
+      value: price, // Sending the actual ETH
       chainId: base.id,
     });
   }, [address, writeContract]);
@@ -197,6 +204,7 @@ export default function OuwiboBaseApp() {
               mintError={mintError}
               isPending={isPending}
               isConfirming={isConfirming}
+              price={MINT_PRICE}
             />
           )}
           {activeTab === 'profile' && <ProfileView key="profile" address={address} userBalance={userBalance} />}
@@ -271,7 +279,7 @@ function ExploreView({ onNftClick }: any) {
   );
 }
 
-function MintView({ isConnected, minted, setTxHash, txHash, totalSupply, loadingSupply, address, shareToWarpcast, nft, handleMint, mintError, isPending, isConfirming }: any) {
+function MintView({ isConnected, minted, setTxHash, txHash, totalSupply, loadingSupply, address, shareToWarpcast, nft, handleMint, mintError, isPending, isConfirming, price }: any) {
   return (
     <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pt-2 text-left pb-8">
       <div className="relative aspect-square w-full max-w-[240px] mx-auto bg-[#0f172a] rounded-2xl overflow-hidden border border-white/5 shadow-xl">
@@ -287,7 +295,7 @@ function MintView({ isConnected, minted, setTxHash, txHash, totalSupply, loading
         <div className="flex justify-between items-center border-b border-white/5 pb-3">
           <div className="text-left">
             <p className="text-[6px] font-black text-slate-500 uppercase tracking-widest mb-0.5 leading-none">Minting Fee</p>
-            <p className="text-sm font-black italic text-base-emerald uppercase leading-none">Free + Gas</p>
+            <p className="text-sm font-black italic text-base-emerald uppercase leading-none">{price} ETH</p>
           </div>
           <div className="text-right">
             <p className="text-[6px] font-black text-slate-500 uppercase tracking-widest mb-0.5 leading-none">Total Minted</p>
@@ -313,7 +321,7 @@ function MintView({ isConnected, minted, setTxHash, txHash, totalSupply, loading
                 className="w-full bg-gradient-to-r from-primary to-indigo-600 text-white font-black py-3.5 rounded-xl text-[10px] uppercase shadow-lg border-none active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {(isPending || isConfirming) && <Loader2 size={12} className="animate-spin" />}
-                {isConfirming ? "CONFIRMING..." : isPending ? "WAITING FOR WALLET..." : "INITIALIZE MINT"}
+                {isConfirming ? "CONFIRMING..." : isPending ? "PAYING FEE..." : `MINT FOR ${price} ETH`}
               </button>
             ) : (
               <div className="p-6 border border-dashed border-white/10 rounded-xl text-center space-y-4 flex flex-col items-center">
