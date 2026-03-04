@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base } from 'wagmi/chains';
-import { parseEther } from 'viem';
+import { parseEther, parseAbi } from 'viem';
 import { 
   useAccount, 
   useConnect, 
@@ -27,7 +27,7 @@ import { WalletConnector } from '@/components/WalletConnector';
 // Constants - Your Official Contract
 const CONTRACT_ADDRESS = "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25" as `0x${string}`;
 const CREATOR_WALLET = "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2";
-const TOKEN_ID = 0n; 
+const DEFAULT_TOKEN_ID = 0n; 
 
 // Stable JSON ABI for ERC-1155
 const ABI = [
@@ -96,17 +96,13 @@ const ABI = [
   }
 ] as const;
 
-const NFT_COLLECTION = [
-  { 
-    id: TOKEN_ID, 
-    name: "Ouwibo Genesis", 
-    tier: "Legendary", 
-    supply: 6969, 
-    image: "/ouwibo-nft.png", 
-    tagline: "The Ultimate Protocol Access",
-    desc: "The primary pass launched within the Ouwibo ecosystem. It provides priority protocol decision-making rights, $OWB token allocations, and access to infrastructure nodes." 
-  }
-];
+interface NFTMetadata {
+  id: bigint;
+  name: string;
+  image: string;
+  description: string;
+  tagline: string;
+}
 
 export default function OuwiboBaseApp() {
   const { address, isConnected } = useAccount();
@@ -115,17 +111,17 @@ export default function OuwiboBaseApp() {
   const { switchChain } = useSwitchChain();
   
   const [activeTab, setActiveTab] = useState<'explore' | 'mint' | 'profile' | 'ai'>('explore');
+  const [selectedNftId, setSelectedNftId] = useState<bigint>(DEFAULT_TOKEN_ID);
   const [minted, setMinted] = useState(false);
-  const [txHash, setTxHash] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [mintError, setMintError] = useState<string | null>(null);
+  const [collection, setCollection] = useState<NFTMetadata[]>([]);
+  const [loadingCollection, setLoadingCollection] = useState(true);
 
   useEffect(() => {
     const init = async () => {
       try {
         await sdk.actions.ready();
-        
-        // Auto-connect Farcaster wallet if available
         const farcasterConnector = connectors.find(c => c.id === 'farcaster');
         if (farcasterConnector && !isConnected) {
           connect({ connector: farcasterConnector });
@@ -134,19 +130,65 @@ export default function OuwiboBaseApp() {
     };
     init();
     setMounted(true);
+    fetchCollection();
   }, [connectors, connect, isConnected]);
+
+  const fetchCollection = async () => {
+    try {
+      const response = await fetch('/api/collection');
+      const data = await response.json();
+      
+      if (data && Array.isArray(data)) {
+        // Here we map the lazy mint events to NFT metadata
+        // For a single collection pass, we usually just need Token ID 0
+        // But this structure allows for multiple if you batch upload metadata
+        const items: NFTMetadata[] = data.map((event: any) => ({
+          id: BigInt(event.data.startTokenId),
+          name: "Ouwibo Genesis", // Fallback name
+          image: "/ouwibo-nft.png", // Fallback image
+          description: "The primary pass launched within the Ouwibo ecosystem.",
+          tagline: "The Ultimate Protocol Access"
+        }));
+        
+        // Ensure we at least have the genesis pass
+        if (items.length === 0) {
+          items.push({
+            id: 0n,
+            name: "Ouwibo Genesis",
+            image: "/ouwibo-nft.png",
+            description: "The primary pass launched within the Ouwibo ecosystem.",
+            tagline: "The Ultimate Protocol Access"
+          });
+        }
+        
+        setCollection(items);
+      }
+    } catch (err) {
+      console.error("Failed to fetch collection", err);
+      // Fallback
+      setCollection([{
+        id: 0n,
+        name: "Ouwibo Genesis",
+        image: "/ouwibo-nft.png",
+        description: "The primary pass launched within the Ouwibo ecosystem.",
+        tagline: "The Ultimate Protocol Access"
+      }]);
+    } finally {
+      setLoadingCollection(false);
+    }
+  };
 
   // Read State
   const { data: totalSupply } = useReadContract({
-    address: CONTRACT_ADDRESS, abi: ABI, functionName: 'totalSupply', args: [TOKEN_ID], chainId: base.id,
+    address: CONTRACT_ADDRESS, abi: ABI, functionName: 'totalSupply', args: [selectedNftId], chainId: base.id,
   });
 
   const { data: userBalance, refetch: refetchBalance } = useReadContract({
-    address: CONTRACT_ADDRESS, abi: ABI, functionName: 'balanceOf', args: [address || "0x0000000000000000000000000000000000000000", TOKEN_ID], chainId: base.id,
+    address: CONTRACT_ADDRESS, abi: ABI, functionName: 'balanceOf', args: [address || "0x0000000000000000000000000000000000000000", selectedNftId], chainId: base.id,
   });
 
   const { data: activeCondition } = useReadContract({
-    address: CONTRACT_ADDRESS, abi: ABI, functionName: 'getActiveClaimCondition', args: [TOKEN_ID], chainId: base.id,
+    address: CONTRACT_ADDRESS, abi: ABI, functionName: 'getActiveClaimCondition', args: [selectedNftId], chainId: base.id,
   });
 
   const hasMinted = minted || (userBalance !== undefined && (userBalance as bigint) > 0n);
@@ -160,11 +202,10 @@ export default function OuwiboBaseApp() {
   useEffect(() => {
     if (isConfirmed) {
       setMinted(true);
-      setTxHash(hash || null);
       refetchBalance();
       toast.success("Minting Successful!");
     }
-  }, [isConfirmed, hash, refetchBalance]);
+  }, [isConfirmed, refetchBalance]);
 
   useEffect(() => {
     if (writeError) {
@@ -185,8 +226,6 @@ export default function OuwiboBaseApp() {
 
     setMintError(null);
     const NATIVE_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' as `0x${string}`;
-    
-    // Max uint256 for unlimited limit per wallet
     const MAX_UINT256 = BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935");
 
     writeContract({
@@ -195,13 +234,13 @@ export default function OuwiboBaseApp() {
       functionName: 'claim',
       args: [
         address,
-        TOKEN_ID,
+        selectedNftId,
         1n,
         NATIVE_TOKEN,
         0n,
         {
           proof: [],
-          quantityLimitPerWallet: MAX_UINT256, // Unlimited limit
+          quantityLimitPerWallet: MAX_UINT256,
           pricePerToken: 0n,
           currency: NATIVE_TOKEN
         },
@@ -209,7 +248,7 @@ export default function OuwiboBaseApp() {
       ],
       chainId: base.id,
     });
-  }, [address, currentChainId, switchChain, writeContract]);
+  }, [address, currentChainId, switchChain, writeContract, selectedNftId]);
 
   if (!mounted) return null;
 
@@ -241,14 +280,25 @@ export default function OuwiboBaseApp() {
                 <h1 className="text-4xl font-black italic text-white uppercase leading-none tracking-tighter">OUWIBO <br/> <span className="text-primary">GENESIS.</span></h1>
                 <p className="text-slate-400 text-[10px]">Official digital asset portal for the Ouwibo protocol on Base.</p>
               </section>
-              <div className="bg-[#0f172a]/40 backdrop-blur-xl border border-white/5 rounded-3xl p-4 flex items-center gap-5 cursor-pointer hover:border-primary/30 transition-all active:scale-95 shadow-xl" onClick={() => setActiveTab('mint')}>
-                <div className="relative w-20 h-20 rounded-2xl overflow-hidden shadow-lg border border-white/10"><Image src="/ouwibo-nft.png" alt="NFT" fill className="object-cover" /></div>
-                <div className="flex-1 space-y-1">
-                  <h3 className="text-lg font-black text-white italic uppercase leading-none">Ouwibo Genesis</h3>
-                  <p className="text-[8px] text-slate-500 font-medium">Utility Access Pass • ERC-1155</p>
-                  <div className="flex items-center gap-1 text-base-emerald text-[7px] font-black uppercase pt-1 tracking-widest"><Zap size={8} className="fill-current" /> Status: {isStarted ? "Live Mint" : "Starting Soon"}</div>
-                </div>
-                <ChevronRight size={16} className="text-slate-600" />
+              
+              <div className="space-y-4">
+                {loadingCollection ? (
+                  <div className="flex items-center justify-center p-12">
+                    <Loader2 className="animate-spin text-primary" size={24} />
+                  </div>
+                ) : (
+                  collection.map((nft) => (
+                    <div key={nft.id.toString()} className="bg-[#0f172a]/40 backdrop-blur-xl border border-white/5 rounded-3xl p-4 flex items-center gap-5 cursor-pointer hover:border-primary/30 transition-all active:scale-95 shadow-xl" onClick={() => { setSelectedNftId(nft.id); setActiveTab('mint'); }}>
+                      <div className="relative w-20 h-20 rounded-2xl overflow-hidden shadow-lg border border-white/10"><Image src={nft.image} alt={nft.name} fill className="object-cover" /></div>
+                      <div className="flex-1 space-y-1">
+                        <h3 className="text-lg font-black text-white italic uppercase leading-none">{nft.name}</h3>
+                        <p className="text-[8px] text-slate-500 font-medium italic">#{nft.id.toString()}</p>
+                        <div className="flex items-center gap-1 text-base-emerald text-[7px] font-black uppercase pt-1 tracking-widest"><Zap size={8} className="fill-current" /> Status: Open Mint</div>
+                      </div>
+                      <ChevronRight size={16} className="text-slate-600" />
+                    </div>
+                  ))
+                )}
               </div>
             </motion.div>
           )}
@@ -256,7 +306,7 @@ export default function OuwiboBaseApp() {
           {activeTab === 'mint' && (
             <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pt-2">
               <div className="relative aspect-square max-w-[240px] mx-auto bg-[#0f172a] rounded-2xl overflow-hidden shadow-2xl border border-white/5">
-                <Image src="/ouwibo-nft.png" alt="NFT" fill className="object-cover" />
+                <Image src={collection.find(n => n.id === selectedNftId)?.image || "/ouwibo-nft.png"} alt="NFT" fill className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-60" />
               </div>
               <div className="bg-[#0f172a]/40 backdrop-blur-3xl border border-white/5 rounded-2xl p-4 space-y-4 shadow-xl">
@@ -273,7 +323,7 @@ export default function OuwiboBaseApp() {
                   <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl flex flex-col items-center gap-2 text-center">
                     <Clock size={24} className="text-amber-500 animate-pulse" />
                     <p className="text-[10px] font-black uppercase text-white">Minting Starts Soon</p>
-                    <p className="text-[8px] text-slate-400 font-medium italic">Available on March 10, 2026</p>
+                    <p className="text-[8px] text-slate-400 font-medium italic">Opens on March 10, 2026</p>
                   </div>
                 ) : (
                   <button 
@@ -286,7 +336,6 @@ export default function OuwiboBaseApp() {
                   </button>
                 )}
                 {mintError && <p className="text-[8px] text-red-400 uppercase font-black text-center mt-2 italic leading-relaxed">{mintError}</p>}
-                {txHash && <a href={`https://basescan.org/tx/${txHash}`} target="_blank" className="text-[6px] font-bold text-secondary uppercase hover:underline text-center block mt-2">View Transaction Receipt ↗</a>}
               </div>
             </motion.div>
           )}
