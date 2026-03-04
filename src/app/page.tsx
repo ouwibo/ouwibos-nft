@@ -107,9 +107,16 @@ export default function OuwiboBaseApp() {
 
   useEffect(() => {
     if (writeError) {
-      console.error("ERROR LOG:", writeError);
-      let msg = "Minting failed. Check your ETH balance for gas.";
-      if (writeError.message.includes('User rejected')) msg = "Transaction rejected.";
+      console.error("BLOCKCHAIN ERROR:", writeError);
+      
+      // Extract cleaner error message
+      const rawMessage = (writeError as any).shortMessage || writeError.message || "";
+      let msg = "Minting failed. " + rawMessage.split('\n')[0];
+      
+      if (writeError.message.includes('User rejected')) {
+        msg = "Transaction rejected by user.";
+      }
+
       setMintError(msg);
       toast.error("Error", { description: msg });
     }
@@ -124,7 +131,9 @@ export default function OuwiboBaseApp() {
 
     setMintError(null);
 
-    // PRECISE PARAMETERS FROM YOUR JSON
+    // EXACT PARAMS FROM JSON
+    const NATIVE_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+    
     writeContract({
       address: CONTRACT_ADDRESS,
       abi: ABI,
@@ -133,13 +142,13 @@ export default function OuwiboBaseApp() {
         address,             // _receiver
         TOKEN_ID,            // _tokenId
         1n,                  // _quantity
-        '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // _currency
+        NATIVE_TOKEN,        // _currency
         0n,                  // _pricePerToken
         {
           proof: [],
-          quantityLimitPerWallet: 10n, // MATCHES YOUR JSON EXACTLY
-          pricePerToken: 0n,          // MATCHES YOUR JSON EXACTLY
-          currency: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
+          quantityLimitPerWallet: 10n, // Matches JSON
+          pricePerToken: 0n,          // Matches JSON
+          currency: NATIVE_TOKEN      // Matches JSON
         },
         '0x'                 // _data
       ],
@@ -252,7 +261,11 @@ function MintView({ isConnected, wrongNetwork, minted, totalSupply, handleMint, 
             {wrongNetwork ? "SWITCH TO BASE NETWORK" : isPending ? "PROCESSING..." : "INITIALIZE FREE MINT"}
           </button>
         )}
-        {mintError && <p className="text-[8px] text-red-400 uppercase font-black text-center italic tracking-widest">{mintError}</p>}
+        {mintError && (
+          <div className="mt-2 p-2 bg-red-950/30 border border-red-500/20 rounded-lg">
+            <p className="text-[7px] text-red-400 uppercase font-black text-center leading-tight">{mintError}</p>
+          </div>
+        )}
       </div>
     </motion.div>
   );
