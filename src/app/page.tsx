@@ -9,6 +9,7 @@ import {
   useAccount, 
   useConnect, 
   useReadContract, 
+  useWriteContract,
   useWaitForTransactionReceipt,
   useSwitchChain,
   useChainId,
@@ -28,8 +29,9 @@ const CONTRACT_ADDRESS = "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25" as `0x${st
 const CREATOR_WALLET = "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2";
 const TOKEN_ID = 0n; 
 
-// ABI for Reading
+// ABI for ERC-1155
 const ABI = parseAbi([
+  "function claim(address _receiver, uint256 _tokenId, uint256 _quantity, address _currency, uint256 _pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) _allowlistProof, bytes _data) external payable",
   "function totalSupply(uint256 id) view returns (uint256)",
   "function balanceOf(address account, uint256 id) view returns (uint256)",
   "function getActiveClaimCondition(uint256 tokenId) view returns ((uint256 startTimestamp, uint256 maxClaimableSupply, uint256 supplyClaimed, uint256 quantityLimitPerWallet, uint256 waitTimeInSecondsBetweenClaims, bytes32 merkleRoot, uint256 pricePerToken, address currency, string metadata))"
@@ -45,7 +47,6 @@ export default function OuwiboBaseApp() {
   const [minted, setMinted] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [isMinting, setIsMinting] = useState(false);
   const [mintError, setMintError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -62,7 +63,7 @@ export default function OuwiboBaseApp() {
     setMounted(true);
   }, [connectors, connect, isConnected]);
 
-  const { data: totalSupply, refetch: refetchSupply } = useReadContract({
+  const { data: totalSupply } = useReadContract({
     address: CONTRACT_ADDRESS, abi: ABI, functionName: 'totalSupply', args: [TOKEN_ID], chainId: base.id,
   });
 
@@ -78,39 +79,60 @@ export default function OuwiboBaseApp() {
   const startTime = activeCondition ? Number((activeCondition as any).startTimestamp) : 0;
   const isStarted = startTime === 0 || Math.floor(Date.now() / 1000) >= startTime;
 
-  const handleGaslessMint = async () => {
-    if (!address) return;
-    setIsMinting(true);
-    setMintError(null);
+  const { writeContract, data: hash, isPending, error: writeError } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
 
-    try {
-      const response = await fetch('/api/mint', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address, nftId: TOKEN_ID.toString() }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to mint");
-      }
-
-      setTxHash(data.txHash);
+  useEffect(() => {
+    if (isConfirmed) {
       setMinted(true);
+      setTxHash(hash || null);
       refetchBalance();
-      refetchSupply();
-      toast.success("Gasless Mint Successful!", {
-        description: "The protocol has sponsored your transaction."
-      });
-    } catch (err: any) {
-      console.error("Gasless Error:", err);
-      setMintError(err.message);
-      toast.error("Minting Error", { description: err.message });
-    } finally {
-      setIsMinting(false);
+      toast.success("Minting Successful!", { description: "Genesis Pass secured in your wallet." });
     }
-  };
+  }, [isConfirmed, hash, refetchBalance]);
+
+  useEffect(() => {
+    if (writeError) {
+      console.error("BLOCKCHAIN ERROR:", writeError);
+      const rawMessage = (writeError as any).shortMessage || writeError.message || "";
+      let msg = "Minting failed. " + rawMessage.split('\n')[0];
+      if (writeError.message.includes('User rejected')) msg = "Transaction rejected.";
+      setMintError(msg);
+      toast.error("Error", { description: msg });
+    }
+  }, [writeError]);
+
+  const handleMint = useCallback(() => {
+    if (!address) return;
+    if (currentChainId !== base.id) {
+      switchChain({ chainId: base.id });
+      return;
+    }
+
+    setMintError(null);
+    const NATIVE_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' as `0x${string}`;
+    
+    writeContract({
+      address: CONTRACT_ADDRESS,
+      abi: ABI,
+      functionName: 'claim',
+      args: [
+        address,
+        TOKEN_ID,
+        1n,
+        NATIVE_TOKEN,
+        0n,
+        {
+          proof: [],
+          quantityLimitPerWallet: 10n,
+          pricePerToken: 0n,
+          currency: NATIVE_TOKEN
+        },
+        '0x'
+      ],
+      chainId: base.id,
+    });
+  }, [address, currentChainId, switchChain, writeContract]);
 
   if (!mounted) return null;
 
@@ -146,8 +168,8 @@ export default function OuwiboBaseApp() {
                 <div className="relative w-20 h-20 rounded-2xl overflow-hidden shadow-lg border border-white/10"><Image src="/ouwibo-nft.png" alt="NFT" fill className="object-cover" /></div>
                 <div className="flex-1 space-y-1">
                   <h3 className="text-lg font-black text-white italic uppercase leading-none">Ouwibo Genesis</h3>
-                  <p className="text-[8px] text-slate-500 font-medium italic">Sponsored Gasless Mint</p>
-                  <div className="flex items-center gap-1 text-base-emerald text-[7px] font-black uppercase pt-1 tracking-widest"><Zap size={8} className="fill-current" /> Status: {isStarted ? "Gasless Live" : "Starting Soon"}</div>
+                  <p className="text-[8px] text-slate-500 font-medium">Utility Access Pass • ERC-1155</p>
+                  <div className="flex items-center gap-1 text-base-emerald text-[7px] font-black uppercase pt-1 tracking-widest"><Zap size={8} className="fill-current" /> Status: {isStarted ? "Live Mint" : "Starting Soon"}</div>
                 </div>
                 <ChevronRight size={16} className="text-slate-600" />
               </div>
@@ -162,7 +184,7 @@ export default function OuwiboBaseApp() {
               </div>
               <div className="bg-[#0f172a]/40 backdrop-blur-3xl border border-white/5 rounded-2xl p-4 space-y-4 shadow-xl">
                 <div className="flex justify-between border-b border-white/5 pb-3 text-left">
-                  <div><p className="text-[6px] font-black text-slate-500 uppercase tracking-widest">Minting Fee</p><p className="text-sm font-black text-base-emerald uppercase">GASLESS FREE</p></div>
+                  <div><p className="text-[6px] font-black text-slate-500 uppercase tracking-widest">Minting Fee</p><p className="text-sm font-black text-base-emerald uppercase">FREE + GAS</p></div>
                   <div className="text-right"><p className="text-[6px] font-black text-slate-500 uppercase tracking-widest">Available Supply</p><p className="text-sm font-black text-white font-mono">{totalSupply?.toString() || '0'} / 6969</p></div>
                 </div>
                 {hasMinted ? (
@@ -174,20 +196,20 @@ export default function OuwiboBaseApp() {
                   <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl flex flex-col items-center gap-2 text-center">
                     <Clock size={24} className="text-amber-500 animate-pulse" />
                     <p className="text-[10px] font-black uppercase text-white">Minting Starts Soon</p>
-                    <p className="text-[8px] text-slate-400 font-medium italic">Gasless period opens on March 10, 2026</p>
+                    <p className="text-[8px] text-slate-400 font-medium italic">Opens on March 10, 2026</p>
                   </div>
                 ) : (
                   <button 
-                    disabled={isMinting || !address} 
-                    onClick={handleGaslessMint} 
-                    className="w-full py-3.5 rounded-xl text-[10px] font-black uppercase transition-all shadow-xl flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-indigo-600 text-white active:scale-95 disabled:opacity-50"
+                    disabled={isPending || isConfirming || !address} 
+                    onClick={handleMint} 
+                    className={`w-full py-3.5 rounded-xl text-[10px] font-black uppercase transition-all shadow-xl flex items-center justify-center gap-2 ${currentChainId !== base.id && isConnected ? 'bg-amber-500 text-black' : 'bg-primary text-white active:scale-95 disabled:opacity-50'}`}
                   >
-                    {isMinting && <Loader2 size={12} className="animate-spin" />}
-                    {isMinting ? "SPONSORING TRANSACTION..." : "INITIALIZE GASLESS MINT"}
+                    {(isPending || isConfirming) && <Loader2 size={12} className="animate-spin" />}
+                    {isConnected && currentChainId !== base.id ? "SWITCH TO BASE NETWORK" : (isPending || isConfirming) ? "PROCESSING..." : "INITIALIZE FREE MINT"}
                   </button>
                 )}
                 {mintError && <p className="text-[8px] text-red-400 uppercase font-black text-center mt-2 italic leading-relaxed">{mintError}</p>}
-                {txHash && <a href={`https://basescan.org/tx/${txHash}`} target="_blank" className="text-[6px] font-bold text-secondary uppercase hover:underline leading-none text-center block mt-2">View Sponsored Receipt ↗</a>}
+                {txHash && <a href={`https://basescan.org/tx/${txHash}`} target="_blank" className="text-[6px] font-bold text-secondary uppercase hover:underline text-center block mt-2">View Transaction Receipt ↗</a>}
               </div>
             </motion.div>
           )}
