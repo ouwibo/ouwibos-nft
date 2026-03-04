@@ -58,6 +58,7 @@ export const metadata: Metadata = {
     type: 'website',
   },
   other: {
+    "talentapp:project_verification": "a02258cfbd696e6d4ce2c4a512ffa2cfd5bfd72fbbe6b34818a714938f0e44ba0002b0eb816aca67e2883d40aae8efede91fed868fb5d4463759a73a73e07319",
     "base:app_id": "69a11773dce51e894f97278f",
     "fc:miniapp": stringifiedConfig,
     "fc:frame": stringifiedConfig,
