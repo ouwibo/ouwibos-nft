@@ -18,7 +18,7 @@ import {
 import { 
   LayoutGrid, User, Loader2, 
   AlertCircle, ShieldCheck, Zap, CheckCircle2,
-  ChevronRight, Bot, Send, Wallet, Coffee, Heart
+  ChevronRight, Bot, Send, Wallet, Coffee, Heart, Clock
 } from 'lucide-react';
 import { toast } from 'sonner';
 import sdk from "@farcaster/miniapp-sdk";
@@ -71,6 +71,28 @@ const ABI = [
       { "type": "uint256", "name": "id" }
     ],
     "outputs": [{ "type": "uint256" }]
+  },
+  {
+    "name": "getActiveClaimCondition",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [{ "type": "uint256", "name": "_tokenId" }],
+    "outputs": [
+      {
+        "type": "tuple",
+        "components": [
+          { "type": "uint256", "name": "startTimestamp" },
+          { "type": "uint256", "name": "maxClaimableSupply" },
+          { "type": "uint256", "name": "supplyClaimed" },
+          { "type": "uint256", "name": "quantityLimitPerWallet" },
+          { "type": "uint256", "name": "waitTimeInSecondsBetweenClaims" },
+          { "type": "bytes32", "name": "merkleRoot" },
+          { "type": "uint256", "name": "pricePerToken" },
+          { "type": "address", "name": "currency" },
+          { "type": "string", "name": "metadata" }
+        ]
+      }
+    ]
   }
 ] as const;
 
@@ -102,6 +124,8 @@ export default function OuwiboBaseApp() {
     const init = async () => {
       try {
         await sdk.actions.ready();
+        
+        // Auto-connect Farcaster wallet if available
         const farcasterConnector = connectors.find(c => c.id === 'farcaster');
         if (farcasterConnector && !isConnected) {
           connect({ connector: farcasterConnector });
@@ -121,7 +145,13 @@ export default function OuwiboBaseApp() {
     address: CONTRACT_ADDRESS, abi: ABI, functionName: 'balanceOf', args: [address || "0x0000000000000000000000000000000000000000", TOKEN_ID], chainId: base.id,
   });
 
+  const { data: activeCondition } = useReadContract({
+    address: CONTRACT_ADDRESS, abi: ABI, functionName: 'getActiveClaimCondition', args: [TOKEN_ID], chainId: base.id,
+  });
+
   const hasMinted = minted || (userBalance !== undefined && (userBalance as bigint) > 0n);
+  const startTime = activeCondition ? Number((activeCondition as any).startTimestamp) : 0;
+  const isStarted = startTime === 0 || Math.floor(Date.now() / 1000) >= startTime;
 
   // Write State
   const { writeContract, data: hash, isPending, error: writeError } = useWriteContract();
@@ -156,6 +186,9 @@ export default function OuwiboBaseApp() {
     setMintError(null);
     const NATIVE_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' as `0x${string}`;
     
+    // Max uint256 for unlimited limit per wallet
+    const MAX_UINT256 = BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935");
+
     writeContract({
       address: CONTRACT_ADDRESS,
       abi: ABI,
@@ -168,7 +201,7 @@ export default function OuwiboBaseApp() {
         0n,
         {
           proof: [],
-          quantityLimitPerWallet: 10n, // From your exact JSON config
+          quantityLimitPerWallet: MAX_UINT256, // Unlimited limit
           pricePerToken: 0n,
           currency: NATIVE_TOKEN
         },
@@ -182,12 +215,20 @@ export default function OuwiboBaseApp() {
 
   return (
     <main className="min-h-screen bg-[#020617] text-slate-200 pb-16 overflow-hidden max-w-[430px] mx-auto relative touch-manipulation">
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-purple-900/5 rounded-full blur-[60px]" />
+        <div className="absolute bottom-[-5%] right-[-5%] w-[40%] h-[40%] bg-cyan-900/5 rounded-full blur-[60px]" />
+      </div>
+
       <header className="sticky top-0 z-50 px-3 py-2.5 backdrop-blur-xl border-b border-white/5 bg-[#020617]/80 flex items-center justify-between">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('explore')}>
           <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-[#0f172a] border border-white/10 shadow-lg">
             <Image src="/ouwibo-nft.png" alt="Logo" fill className="object-cover" />
           </div>
-          <h1 className="font-black text-xs text-white">OUWIBO</h1>
+          <div className="text-left">
+            <h1 className="font-black text-xs text-white leading-none">OUWIBO</h1>
+            <p className="text-[6px] font-bold text-secondary uppercase tracking-widest mt-0.5">Base Network</p>
+          </div>
         </div>
         <div className="scale-75 origin-right"><WalletConnector /></div>
       </header>
@@ -205,7 +246,7 @@ export default function OuwiboBaseApp() {
                 <div className="flex-1 space-y-1">
                   <h3 className="text-lg font-black text-white italic uppercase leading-none">Ouwibo Genesis</h3>
                   <p className="text-[8px] text-slate-500 font-medium">Utility Access Pass • ERC-1155</p>
-                  <div className="flex items-center gap-1 text-base-emerald text-[7px] font-black uppercase pt-1 tracking-widest"><Zap size={8} className="fill-current" /> Status: Open Mint</div>
+                  <div className="flex items-center gap-1 text-base-emerald text-[7px] font-black uppercase pt-1 tracking-widest"><Zap size={8} className="fill-current" /> Status: {isStarted ? "Live Mint" : "Starting Soon"}</div>
                 </div>
                 <ChevronRight size={16} className="text-slate-600" />
               </div>
@@ -227,6 +268,12 @@ export default function OuwiboBaseApp() {
                   <div className="bg-base-emerald/10 border border-base-emerald/20 p-3 rounded-xl flex items-center gap-3">
                     <div className="w-8 h-8 bg-base-emerald rounded-lg flex items-center justify-center shadow-lg"><CheckCircle2 size={18} className="text-black" /></div>
                     <p className="text-[10px] font-black uppercase text-white leading-none">Genesis Pass Owned</p>
+                  </div>
+                ) : !isStarted ? (
+                  <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl flex flex-col items-center gap-2 text-center">
+                    <Clock size={24} className="text-amber-500 animate-pulse" />
+                    <p className="text-[10px] font-black uppercase text-white">Minting Starts Soon</p>
+                    <p className="text-[8px] text-slate-400 font-medium italic">Available on March 10, 2026</p>
                   </div>
                 ) : (
                   <button 

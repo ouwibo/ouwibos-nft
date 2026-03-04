@@ -5,27 +5,28 @@ import '@rainbow-me/rainbowkit/styles.css';
 import {
   RainbowKitProvider,
   darkTheme,
+  getDefaultConfig,
 } from '@rainbow-me/rainbowkit';
-import { WagmiProvider, createConfig, http } from 'wagmi';
+import { WagmiProvider, http } from 'wagmi';
 import { base } from 'wagmi/chains';
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
-import { coinbaseWallet } from 'wagmi/connectors';
-import { Loader2 } from "lucide-react";
 
-const config = createConfig({
+const config = getDefaultConfig({
+  appName: 'OUWIBO GENESIS',
+  projectId: 'YOUR_PROJECT_ID', // Recommended: Replace with your actual WalletConnect project ID
   chains: [base],
-  connectors: [
-    farcasterFrame(),
-    coinbaseWallet({
-      appName: 'OUWIBO GENESIS',
-      preference: 'smartWalletOnly',
-    }),
-  ],
+  ssr: true,
   transports: {
     [base.id]: http(),
   },
 });
+
+// Add Farcaster Frame connector to the beginning of the list
+const connectors = config.connectors;
+if (!connectors.some(c => c.id === 'farcaster')) {
+  (config as any).connectors = [farcasterFrame(), ...connectors];
+}
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
