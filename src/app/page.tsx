@@ -1,32 +1,21 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from 'framer-motion';
+import { base } from 'wagmi/chains';
+import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { 
-  LayoutGrid, ShoppingBag, User, Map, Info, Wallet, Loader2, 
-  AlertCircle, ShieldCheck, Zap, CheckCircle2, Search, Filter, 
-  ArrowUpRight, Share2, Globe, Twitter, Github, ChevronDown, Clock, Tag, RefreshCw, ChevronRight,
-  Bot, Send, MessageSquare, Sparkles
+  LayoutGrid, User, Loader2, 
+  AlertCircle, ShieldCheck, Zap, CheckCircle2,
+  ChevronRight, Bot, Send, Wallet
 } from 'lucide-react';
 import sdk from "@farcaster/miniapp-sdk";
-import { 
-  useAccount, 
-  useConnect, 
-  useDisconnect, 
-  useWriteContract, 
-  useWaitForTransactionReceipt,
-  useReadContract
-} from 'wagmi';
-import { base } from 'wagmi/chains';
-import { parseAbi } from 'viem';
-import { WalletConnector } from "@/components/WalletConnector";
+import { WalletConnector } from '@/components/WalletConnector';
 
-const CONTRACT_ADDRESS = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25") as `0x${string}`;
-if (!CONTRACT_ADDRESS) {
-  console.warn("CONTRACT_ADDRESS is not defined in environment variables. Falling back to default.");
-}
-const ABI = parseAbi([
+// Constants
+const CONTRACT_ADDRESS = "0x69A11773Dce51E894f97278F3d40Aae8efEde91f" as `0x${string}`;
+const ABI = ([
   "function claim(address receiver, uint256 quantity, address currency, uint256 pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) allowlistProof, bytes data) external payable",
   "function totalSupply() view returns (uint256)",
   "function balanceOf(address account) view returns (uint256)"
@@ -40,7 +29,7 @@ const NFT_COLLECTION = [
     supply: 6969, 
     image: "/ouwibo-nft.png", 
     tagline: "The Ultimate Protocol Access",
-    desc: "Pass utama yang diluncurkan dalam ekosistem Ouwibo. Memberikan hak istimewa dalam pengambilan keputusan protokol, alokasi token $SHELL, dan akses ke node infrastruktur." 
+    desc: "The primary pass launched within the Ouwibo ecosystem. It provides priority protocol decision-making rights, $OWB token allocations, and access to infrastructure nodes." 
   }
 ];
 
@@ -228,7 +217,7 @@ function ExploreView({ onNftClick }: any) {
           OUWIBO <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary text-left">GENESIS.</span>
         </h1>
         <p className="text-slate-400 text-[10px] font-medium italic leading-tight max-w-[280px] text-left">
-          Portal aset digital resmi Ouwibo di jaringan Base. Minting Utility NFT untuk membuka akses penuh ke protokol.
+          The official digital asset portal for the Ouwibo protocol on the Base network. Mint your utility NFTs to unlock full access to the ecosystem.
         </p>
       </section>
 
@@ -375,18 +364,18 @@ function ProfileView({ address }: any) {
 
 function AiChatView() {
   const [messages, setMessages] = useState([
-    { role: 'bot', text: 'Greetings, Voyager! I am **Clawdbot**, the neural guide for **OUWIBO GENESIS**. How can I assist your journey through the protocol today?' }
+    { role: 'bot', text: 'Protocol connection established. I am the Ouwibo Archive Core. How can I assist with your Genesis Pass or the $OWB tokenomics?' }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
 
   const KNOWLEDGE_BASE: Record<string, string> = {
-    'genesis': 'The **OUWIBO Genesis Pass** is our legendary tier asset. It grants 100% governance rights and the highest multiplier for $SHELL allocations.',
-    'shell': '**$SHELL** is the native utility token of the Atlantis ecosystem. 60% of the supply is reserved for the community, primarily Genesis holders.',
+    'genesis': 'The **OUWIBO Genesis Pass** is our legendary tier asset. It grants 100% governance rights and the highest multiplier for $OWB allocations.',
+    'owb': '**$OWB** is the native utility token of the Atlantis ecosystem. 60% of the supply is reserved for the community, primarily Genesis holders.',
     'base': 'We are built natively on **Base**, the secure and low-cost Layer 2 network powered by Coinbase.',
     'mint': 'You can initialize your mint in the **Mint** tab. Remember, the limit is **1 Pass per wallet** to ensure fair distribution.',
-    'airdrop': 'The first snapshot for the **$SHELL airdrop** is scheduled for Q2 2026. Keep your Genesis Pass secured in your wallet.',
+    'airdrop': 'The first snapshot for the **$OWB airdrop** is scheduled for Q2 2026. Keep your Genesis Pass secured in your wallet.',
   };
 
   const scrollToBottom = () => {
@@ -409,7 +398,7 @@ function AiChatView() {
 
     // Simulate AI Processing
     setTimeout(() => {
-      let response = "I'm synchronizing with the protocol archives. Could you be more specific? I have detailed data on **Genesis**, **$SHELL token**, and **Base network**.";
+      let response = "I'm synchronizing with the protocol archives. Could you be more specific? I have detailed data on **Genesis**, **$OWB token**, and **Base network**.";
       
       const lowerInput = messageText.toLowerCase();
       for (const key in KNOWLEDGE_BASE) {
@@ -468,7 +457,7 @@ function AiChatView() {
 
       {/* Quick Suggestions */}
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-        {['What is $SHELL?', 'Genesis Utility', 'Base Network'].map((q) => (
+        {['What is $OWB?', 'Genesis Utility', 'Base Network'].map((q) => (
           <button 
             key={q} 
             onClick={() => handleSend(q)}
@@ -495,3 +484,5 @@ function AiChatView() {
     </motion.div>
   );
 }
+
+import { useAccount, useConnect } from 'wagmi';
