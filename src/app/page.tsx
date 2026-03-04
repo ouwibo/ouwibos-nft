@@ -29,12 +29,50 @@ const CONTRACT_ADDRESS = "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25" as `0x${st
 const CREATOR_WALLET = "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2";
 const TOKEN_ID = 0n; 
 
-// ERC-1155 ABI
-const ABI = ([
-  "function claim(address receiver, uint256 tokenId, uint256 quantity, address currency, uint256 pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) allowlistProof, bytes data) external payable",
-  "function totalSupply(uint256 id) view returns (uint256)",
-  "function balanceOf(address account, uint256 id) view returns (uint256)"
-]);
+// JSON ABI - The most robust format for complex contracts
+const ABI = [
+  {
+    "name": "claim",
+    "type": "function",
+    "stateMutability": "payable",
+    "inputs": [
+      { "type": "address", "name": "_receiver" },
+      { "type": "uint256", "name": "_tokenId" },
+      { "type": "uint256", "name": "_quantity" },
+      { "type": "address", "name": "_currency" },
+      { "type": "uint256", "name": "_pricePerToken" },
+      {
+        "type": "tuple",
+        "name": "_allowlistProof",
+        "components": [
+          { "type": "bytes32[]", "name": "proof" },
+          { "type": "uint256", "name": "quantityLimitPerWallet" },
+          { "type": "uint256", "name": "pricePerToken" },
+          { "type": "address", "name": "currency" }
+        ]
+      },
+      { "type": "bytes", "name": "_data" }
+    ],
+    "outputs": []
+  },
+  {
+    "name": "totalSupply",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [{ "type": "uint256", "name": "id" }],
+    "outputs": [{ "type": "uint256" }]
+  },
+  {
+    "name": "balanceOf",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [
+      { "type": "address", "name": "account" },
+      { "type": "uint256", "name": "id" }
+    ],
+    "outputs": [{ "type": "uint256" }]
+  }
+] as const;
 
 const NFT_COLLECTION = [
   { 
@@ -108,15 +146,9 @@ export default function OuwiboBaseApp() {
   useEffect(() => {
     if (writeError) {
       console.error("BLOCKCHAIN ERROR:", writeError);
-      
-      // Extract cleaner error message
       const rawMessage = (writeError as any).shortMessage || writeError.message || "";
       let msg = "Minting failed. " + rawMessage.split('\n')[0];
-      
-      if (writeError.message.includes('User rejected')) {
-        msg = "Transaction rejected by user.";
-      }
-
+      if (writeError.message.includes('User rejected')) msg = "Transaction rejected.";
       setMintError(msg);
       toast.error("Error", { description: msg });
     }
@@ -146,9 +178,9 @@ export default function OuwiboBaseApp() {
         0n,                  // _pricePerToken
         {
           proof: [],
-          quantityLimitPerWallet: 10n, // Matches JSON
-          pricePerToken: 0n,          // Matches JSON
-          currency: NATIVE_TOKEN      // Matches JSON
+          quantityLimitPerWallet: 10n, 
+          pricePerToken: 0n,          
+          currency: NATIVE_TOKEN      
         },
         '0x'                 // _data
       ],
@@ -219,7 +251,7 @@ function ExploreView({ onNftClick }: any) {
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 text-left">
       <section className="space-y-2 pb-6 border-b border-white/5">
         <h1 className="text-4xl font-black italic text-white uppercase leading-none tracking-tighter">OUWIBO <br/> <span className="text-primary">GENESIS.</span></h1>
-        <p className="text-slate-400 text-[10px] font-medium max-w-[250px]">The official digital asset portal for the Ouwibo protocol on Base. Mint your utility NFTs now.</p>
+        <p className="text-slate-400 text-[10px] font-medium max-w-[250px]">Official digital asset portal for the Ouwibo protocol on Base.</p>
       </section>
       <div className="bg-[#0f172a]/40 backdrop-blur-xl border border-white/5 rounded-3xl p-4 flex items-center gap-5 cursor-pointer hover:border-primary/30 transition-all active:scale-95 shadow-xl" onClick={onNftClick}>
         <div className="relative w-20 h-20 rounded-2xl overflow-hidden shadow-lg border border-white/10"><Image src="/ouwibo-nft.png" alt="NFT" fill className="object-cover" /></div>
