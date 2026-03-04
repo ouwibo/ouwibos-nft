@@ -163,7 +163,7 @@ export default function OuwiboBaseApp() {
               <div className="bg-[#0f172a]/40 backdrop-blur-3xl border border-white/5 rounded-2xl p-4 space-y-4 shadow-xl">
                 <div className="flex justify-between border-b border-white/5 pb-3 text-left">
                   <div><p className="text-[6px] font-black text-slate-500 uppercase tracking-widest">Minting Fee</p><p className="text-sm font-black text-base-emerald uppercase">GASLESS FREE</p></div>
-                  <div className="text-right"><p className="text-[6px] font-black text-slate-500 uppercase tracking-widest">Total Minted</p><p className="text-sm font-black text-white font-mono">{totalSupply?.toString() || '0'}</p></div>
+                  <div className="text-right"><p className="text-[6px] font-black text-slate-500 uppercase tracking-widest">Available Supply</p><p className="text-sm font-black text-white font-mono">{totalSupply?.toString() || '0'} / 6969</p></div>
                 </div>
                 {hasMinted ? (
                   <div className="bg-base-emerald/10 border border-base-emerald/20 p-3 rounded-xl flex items-center gap-3">
