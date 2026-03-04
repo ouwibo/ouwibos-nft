@@ -18,7 +18,7 @@ import {
 import { 
   LayoutGrid, User, Loader2, 
   AlertCircle, ShieldCheck, Zap, CheckCircle2,
-  ChevronRight, Bot, Send, Wallet, Coffee, Heart
+  ChevronRight, Bot, Send, Wallet, Coffee, Heart, Clock
 } from 'lucide-react';
 import { toast } from 'sonner';
 import sdk from "@farcaster/miniapp-sdk";
@@ -29,24 +29,13 @@ const CONTRACT_ADDRESS = "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25" as `0x${st
 const CREATOR_WALLET = "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2";
 const TOKEN_ID = 0n; 
 
-// Using parseAbi for the most reliable signature processing
+// ABI
 const ABI = parseAbi([
   "function claim(address _receiver, uint256 _tokenId, uint256 _quantity, address _currency, uint256 _pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) _allowlistProof, bytes _data) external payable",
   "function totalSupply(uint256 id) view returns (uint256)",
-  "function balanceOf(address account, uint256 id) view returns (uint256)"
+  "function balanceOf(address account, uint256 id) view returns (uint256)",
+  "function getActiveClaimCondition(uint256 tokenId) view returns ((uint256 startTimestamp, uint256 maxClaimableSupply, uint256 supplyClaimed, uint256 quantityLimitPerWallet, uint256 waitTimeInSecondsBetweenClaims, bytes32 merkleRoot, uint256 pricePerToken, address currency, string metadata))"
 ]);
-
-const NFT_COLLECTION = [
-  { 
-    id: TOKEN_ID, 
-    name: "Ouwibo Genesis", 
-    tier: "Legendary", 
-    supply: 6969, 
-    image: "/ouwibo-nft.png", 
-    tagline: "The Ultimate Protocol Access",
-    desc: "The primary pass launched within the Ouwibo ecosystem. It provides priority protocol decision-making rights, $OWB token allocations, and access to infrastructure nodes." 
-  }
-];
 
 export default function OuwiboBaseApp() {
   const { address, isConnected } = useAccount();
@@ -56,7 +45,6 @@ export default function OuwiboBaseApp() {
   
   const [activeTab, setActiveTab] = useState<'explore' | 'mint' | 'profile' | 'ai'>('explore');
   const [minted, setMinted] = useState(false);
-  const [txHash, setTxHash] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [mintError, setMintError] = useState<string | null>(null);
 
@@ -75,22 +63,20 @@ export default function OuwiboBaseApp() {
   }, [connectors, connect, isConnected]);
 
   const { data: totalSupply } = useReadContract({
-    address: CONTRACT_ADDRESS,
-    abi: ABI,
-    functionName: 'totalSupply',
-    args: [TOKEN_ID],
-    chainId: base.id,
+    address: CONTRACT_ADDRESS, abi: ABI, functionName: 'totalSupply', args: [TOKEN_ID], chainId: base.id,
   });
 
   const { data: userBalance, refetch: refetchBalance } = useReadContract({
-    address: CONTRACT_ADDRESS,
-    abi: ABI,
-    functionName: 'balanceOf',
-    args: [address || "0x0000000000000000000000000000000000000000", TOKEN_ID],
-    chainId: base.id,
+    address: CONTRACT_ADDRESS, abi: ABI, functionName: 'balanceOf', args: [address || "0x0000000000000000000000000000000000000000", TOKEN_ID], chainId: base.id,
+  });
+
+  const { data: activeCondition, isLoading: loadingCond } = useReadContract({
+    address: CONTRACT_ADDRESS, abi: ABI, functionName: 'getActiveClaimCondition', args: [TOKEN_ID], chainId: base.id,
   });
 
   const hasMinted = minted || (userBalance !== undefined && (userBalance as bigint) > 0n);
+  const startTime = activeCondition ? Number((activeCondition as any).startTimestamp) : 0;
+  const isStarted = startTime === 0 || Math.floor(Date.now() / 1000) >= startTime;
 
   const { writeContract, data: hash, isPending, error: writeError } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
@@ -98,22 +84,21 @@ export default function OuwiboBaseApp() {
   useEffect(() => {
     if (isConfirmed) {
       setMinted(true);
-      setTxHash(hash || null);
       refetchBalance();
       toast.success("Minting Successful!");
     }
-  }, [isConfirmed, hash, refetchBalance]);
+  }, [isConfirmed, refetchBalance]);
 
   useEffect(() => {
     if (writeError) {
       console.error("BLOCKCHAIN ERROR:", writeError);
-      const rawMessage = (writeError as any).shortMessage || writeError.message || "";
-      let msg = "Minting failed. " + rawMessage.split('\n')[0];
+      let msg = "Minting failed. Simulation failed.";
       if (writeError.message.includes('User rejected')) msg = "Transaction rejected.";
+      if (!isStarted) msg = "Minting has not started yet. Check start time in Dashboard.";
       setMintError(msg);
       toast.error("Error", { description: msg });
     }
-  }, [writeError]);
+  }, [writeError, isStarted]);
 
   const handleMint = useCallback(() => {
     if (!address) return;
@@ -177,12 +162,11 @@ export default function OuwiboBaseApp() {
                 <h1 className="text-4xl font-black italic text-white uppercase leading-none tracking-tighter">OUWIBO <br/> <span className="text-primary">GENESIS.</span></h1>
                 <p className="text-slate-400 text-[10px] font-medium max-w-[250px]">Official digital asset portal for the Ouwibo protocol on Base.</p>
               </section>
-              <div className="bg-[#0f172a]/40 backdrop-blur-xl border border-white/5 rounded-3xl p-4 flex items-center gap-5 cursor-pointer hover:border-primary/30 transition-all active:scale-95 shadow-xl" onClick={() => setActiveTab('mint')}>
+              <div className="bg-[#0f172a]/40 backdrop-blur-xl border border-white/5 rounded-3xl p-4 flex items-center gap-5 cursor-pointer hover:border-primary/30 transition-all shadow-xl" onClick={() => setActiveTab('mint')}>
                 <div className="relative w-20 h-20 rounded-2xl overflow-hidden shadow-lg border border-white/10"><Image src="/ouwibo-nft.png" alt="NFT" fill className="object-cover" /></div>
                 <div className="flex-1 space-y-1">
                   <h3 className="text-lg font-black text-white italic uppercase leading-none">Ouwibo Genesis</h3>
-                  <p className="text-[8px] text-slate-500 font-medium">Utility Access Pass • ERC-1155</p>
-                  <div className="flex items-center gap-1 text-base-emerald text-[7px] font-black uppercase pt-1 tracking-widest"><Zap size={8} className="fill-current" /> Status: Open Mint</div>
+                  <div className="flex items-center gap-1 text-base-emerald text-[7px] font-black uppercase pt-1 tracking-widest"><Zap size={8} className="fill-current" /> Status: {isStarted ? "Live Mint" : "Starting Soon"}</div>
                 </div>
                 <ChevronRight size={16} className="text-slate-600" />
               </div>
@@ -205,6 +189,12 @@ export default function OuwiboBaseApp() {
                     <div className="w-8 h-8 bg-base-emerald rounded-lg flex items-center justify-center shadow-lg"><CheckCircle2 size={18} className="text-black" /></div>
                     <p className="text-[10px] font-black uppercase text-white leading-none">Genesis Pass Owned</p>
                   </div>
+                ) : !isStarted ? (
+                  <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl flex flex-col items-center gap-2 text-center">
+                    <Clock size={24} className="text-amber-500 animate-pulse" />
+                    <p className="text-[10px] font-black uppercase text-white">Minting Starts Soon</p>
+                    <p className="text-[8px] text-slate-400 font-medium italic">Available on March 10, 2026</p>
+                  </div>
                 ) : (
                   <button 
                     disabled={isPending || isConfirming} 
@@ -215,7 +205,7 @@ export default function OuwiboBaseApp() {
                     {isConnected && currentChainId !== base.id ? "SWITCH TO BASE NETWORK" : (isPending || isConfirming) ? "PROCESSING..." : "INITIALIZE FREE MINT"}
                   </button>
                 )}
-                {mintError && <p className="text-[8px] text-red-400 uppercase font-black text-center mt-2 italic">{mintError}</p>}
+                {mintError && <p className="text-[8px] text-red-400 uppercase font-black text-center mt-2 italic leading-relaxed">{mintError}</p>}
               </div>
             </motion.div>
           )}
@@ -277,7 +267,7 @@ function AiChatView() {
   return (
     <div className="h-[60vh] flex flex-col items-center justify-center text-center p-6">
       <Bot size={40} className="text-primary mb-4 animate-pulse" />
-      <p className="italic text-slate-500 text-xs font-medium max-w-[200px] leading-relaxed">OUWIBO AI core is currently synchronizing with the protocol archives...</p>
+      <p className="italic text-slate-500 text-xs font-medium max-w-[200px] leading-relaxed text-center">OUWIBO AI core is currently synchronizing with the protocol archives...</p>
     </div>
   );
 }
