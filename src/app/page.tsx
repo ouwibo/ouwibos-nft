@@ -25,7 +25,7 @@ import sdk from "@farcaster/miniapp-sdk";
 import { WalletConnector } from '@/components/WalletConnector';
 
 // DYNAMIC CONFIG FROM ENV
-const CONTRACT_ADDRESS = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25") as `0x${string}`;
+const CONTRACT_ADDRESS = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0x075Bb11C9eeEfdd7b5AF5244Df2fb1f08BfA4146") as `0x${string}`;
 const CREATOR_WALLET = "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2";
 const DEFAULT_IMAGE = "https://ipfs.io/ipfs/QmQNxT4Q2C8yAzjLR7Dq87VLeV7idwoH7rbPFWJVHv9zX2/0.jpg";
 const TOKEN_ID = 0n; 
@@ -230,7 +230,7 @@ export default function OuwiboBaseApp() {
         0n,
         {
           proof: [],
-          quantityLimitPerWallet: 10n, // Matches your provided JSON
+          quantityLimitPerWallet: BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935"), // Unlimited
           pricePerToken: 0n,
           currency: NATIVE_TOKEN
         },
