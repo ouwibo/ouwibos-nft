@@ -34,7 +34,7 @@ const ABI = ([
   "function claim(address receiver, uint256 tokenId, uint256 quantity, address currency, uint256 pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) allowlistProof, bytes data) external payable",
   "function totalSupply(uint256 id) view returns (uint256)",
   "function balanceOf(address account, uint256 id) view returns (uint256)",
-  "function getActiveClaimCondition(uint256 tokenId) view returns ((uint256 startTimestamp, uint256 maxClaimableSupply, uint256 supplyClaimed, uint256 quantityLimitPerWallet, uint256 waitTimeInSecondsBetweenClaims, bytes32 merkleRoot, uint256 pricePerToken, address currency, string metadata))"
+  "function getActiveClaimCondition(uint256 tokenId) view returns (tuple(uint256 startTimestamp, uint256 maxClaimableSupply, uint256 supplyClaimed, uint256 quantityLimitPerWallet, uint256 waitTimeInSecondsBetweenClaims, bytes32 merkleRoot, uint256 pricePerToken, address currency, string metadata))"
 ]);
 
 const NFT_COLLECTION = [
@@ -101,7 +101,7 @@ export default function OuwiboBaseApp() {
     functionName: 'getActiveClaimCondition',
     args: [TOKEN_ID],
     chainId: base.id,
-  }) as { data: any };
+  });
 
   const hasMinted = minted || (userBalance !== undefined && (userBalance as bigint) > 0n);
 
@@ -130,7 +130,7 @@ export default function OuwiboBaseApp() {
   }, [writeError]);
 
   const handleMint = useCallback(() => {
-    if (!address || !activeCondition) return;
+    if (!address) return;
     if (currentChainId !== base.id) {
       switchChain({ chainId: base.id });
       return;
@@ -138,10 +138,10 @@ export default function OuwiboBaseApp() {
 
     setMintError(null);
 
-    // Dynamic parameters from active condition
-    const price = activeCondition.pricePerToken;
-    const currency = activeCondition.currency;
-    const limit = activeCondition.quantityLimitPerWallet;
+    // Default values if activeCondition is not yet loaded
+    const price = activeCondition ? (activeCondition as any).pricePerToken : 0n;
+    const currency = activeCondition ? (activeCondition as any).currency : '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
+    const limit = activeCondition ? (activeCondition as any).quantityLimitPerWallet : BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935");
 
     writeContract({
       address: CONTRACT_ADDRESS,
@@ -193,7 +193,7 @@ export default function OuwiboBaseApp() {
               handleMint={handleMint} 
               mintError={mintError}
               isPending={isPending || isConfirming}
-              price={activeCondition ? (Number(activeCondition.pricePerToken) / 1e18).toString() : "0"}
+              price={activeCondition ? (Number((activeCondition as any).pricePerToken) / 1e18).toString() : "0"}
             />
           )}
           {activeTab === 'profile' && <ProfileView address={address} userBalance={userBalance} />}
