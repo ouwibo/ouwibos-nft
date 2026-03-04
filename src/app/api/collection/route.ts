@@ -3,12 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function GET(req: NextRequest) {
   try {
     const secretKey = process.env.THIRDWEB_SECRET_KEY;
-    const contractAddress = "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25";
-    const chainId = "8453"; // Base
+    const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25";
+    const chainId = process.env.NEXT_PUBLIC_CHAIN_ID || "8453"; // Base
 
-    // If key is missing, return empty array instead of 500 error to avoid build failures
     if (!secretKey) {
-      console.warn("THIRDWEB_SECRET_KEY is not defined. Returning empty collection.");
+      console.warn("THIRDWEB_SECRET_KEY is not defined.");
       return NextResponse.json([]);
     }
 
@@ -22,16 +21,11 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    if (!response.ok) {
-      // In case of API failure, return empty array to prevent frontend crash
-      console.error("Thirdweb API failure during build/runtime");
-      return NextResponse.json([]);
-    }
+    if (!response.ok) return NextResponse.json([]);
 
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error: any) {
-    console.error('Collection API Error:', error);
-    return NextResponse.json([], { status: 200 }); // Always return success with empty array as fallback
+    return NextResponse.json([]);
   }
 }
