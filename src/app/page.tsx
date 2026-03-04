@@ -4,12 +4,12 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base } from 'wagmi/chains';
-import { parseEther, parseAbi } from 'viem';
+import { parseEther } from 'viem';
 import { 
   useAccount, 
   useConnect, 
   useReadContract, 
-  useWriteContract,
+  useWriteContract, 
   useWaitForTransactionReceipt,
   useSwitchChain,
   useChainId,
@@ -18,24 +18,36 @@ import {
 import { 
   LayoutGrid, User, Loader2, 
   AlertCircle, ShieldCheck, Zap, CheckCircle2,
-  ChevronRight, Bot, Send, Wallet, Coffee, Heart, Clock
+  ChevronRight, Bot, Send, Wallet, Coffee, Heart
 } from 'lucide-react';
 import { toast } from 'sonner';
 import sdk from "@farcaster/miniapp-sdk";
 import { WalletConnector } from '@/components/WalletConnector';
 
 // Constants
-const CONTRACT_ADDRESS = "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25" as `0x${string}`;
+const CONTRACT_ADDRESS = "0x69A11773Dce51E894f97278F3d40Aae8efEde91f" as `0x${string}`;
+const MINT_PRICE = "0"; 
 const CREATOR_WALLET = "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2";
-const TOKEN_ID = 0n; 
 
-// ABI for ERC-1155
-const ABI = parseAbi([
-  "function claim(address _receiver, uint256 _tokenId, uint256 _quantity, address _currency, uint256 _pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) _allowlistProof, bytes _data) external payable",
-  "function totalSupply(uint256 id) view returns (uint256)",
-  "function balanceOf(address account, uint256 id) view returns (uint256)",
-  "function getActiveClaimCondition(uint256 tokenId) view returns ((uint256 startTimestamp, uint256 maxClaimableSupply, uint256 supplyClaimed, uint256 quantityLimitPerWallet, uint256 waitTimeInSecondsBetweenClaims, bytes32 merkleRoot, uint256 pricePerToken, address currency, string metadata))"
+const ABI = ([
+  "function claim(address receiver, uint256 quantity, address currency, uint256 pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) allowlistProof, bytes data) external payable",
+  "function totalSupply() view returns (uint256)",
+  "function balanceOf(address account) view returns (uint256)"
 ]);
+
+const NFT_COLLECTION = [
+  { 
+    id: 0n, 
+    name: "Ouwibo Genesis", 
+    tier: "Legendary", 
+    supply: 6969, 
+    image: "/ouwibo-nft.png", 
+    tagline: "The Ultimate Protocol Access",
+    desc: "The primary pass launched within the Ouwibo ecosystem. It provides priority protocol decision-making rights, $OWB token allocations, and access to infrastructure nodes." 
+  }
+];
+
+type Tab = 'explore' | 'mint' | 'profile' | 'ai';
 
 export default function OuwiboBaseApp() {
   const { address, isConnected } = useAccount();
@@ -43,7 +55,8 @@ export default function OuwiboBaseApp() {
   const currentChainId = useChainId();
   const { switchChain } = useSwitchChain();
   
-  const [activeTab, setActiveTab] = useState<'explore' | 'mint' | 'profile' | 'ai'>('explore');
+  const [activeTab, setActiveTab] = useState<Tab>('explore');
+  const [selectedNftId, setSelectedNftId] = useState<bigint>(0n);
   const [minted, setMinted] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -53,31 +66,50 @@ export default function OuwiboBaseApp() {
     const init = async () => {
       try {
         await sdk.actions.ready();
+        
         const farcasterConnector = connectors.find(c => c.id === 'farcaster');
         if (farcasterConnector && !isConnected) {
           connect({ connector: farcasterConnector });
         }
-      } catch (e) { console.error("SDK Error", e); }
+      } catch (e) { 
+        console.error("SDK Error", e); 
+      }
     };
     init();
     setMounted(true);
   }, [connectors, connect, isConnected]);
 
-  const { data: totalSupply } = useReadContract({
-    address: CONTRACT_ADDRESS, abi: ABI, functionName: 'totalSupply', args: [TOKEN_ID], chainId: base.id,
+  const selectedNft = NFT_COLLECTION.find(n => n.id === selectedNftId) || NFT_COLLECTION[0];
+
+  const { data: totalSupply, isLoading: loadingSupply } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: ABI,
+    functionName: 'totalSupply',
+    chainId: base.id,
   });
 
   const { data: userBalance, refetch: refetchBalance } = useReadContract({
-    address: CONTRACT_ADDRESS, abi: ABI, functionName: 'balanceOf', args: [address || "0x0000000000000000000000000000000000000000", TOKEN_ID], chainId: base.id,
-  });
-
-  const { data: activeCondition } = useReadContract({
-    address: CONTRACT_ADDRESS, abi: ABI, functionName: 'getActiveClaimCondition', args: [TOKEN_ID], chainId: base.id,
+    address: CONTRACT_ADDRESS,
+    abi: ABI,
+    functionName: 'balanceOf',
+    args: [address || "0x0000000000000000000000000000000000000000"],
+    chainId: base.id,
   });
 
   const hasMinted = minted || (userBalance !== undefined && (userBalance as bigint) > 0n);
-  const startTime = activeCondition ? Number((activeCondition as any).startTimestamp) : 0;
-  const isStarted = startTime === 0 || Math.floor(Date.now() / 1000) >= startTime;
+
+  const handleViewNft = (id: bigint) => {
+    setSelectedNftId(id);
+    setActiveTab('mint');
+    setMinted(false);
+  };
+
+  const shareToWarpcast = () => {
+    const text = `I just secured my ${selectedNft.name} on Base! 🚀 Join the wave at @ouwibo`;
+    const url = "https://ouwibo-nft.vercel.app";
+    const castUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURIComponent(url)}`;
+    window.open(castUrl, "_blank");
+  };
 
   const { writeContract, data: hash, isPending, error: writeError } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
@@ -87,46 +119,47 @@ export default function OuwiboBaseApp() {
       setMinted(true);
       setTxHash(hash || null);
       refetchBalance();
-      toast.success("Minting Successful!", { description: "Genesis Pass secured in your wallet." });
+      toast.success("Minting Successful!", {
+        description: "Your Genesis Pass has been secured in your wallet."
+      });
     }
   }, [isConfirmed, hash, refetchBalance]);
 
   useEffect(() => {
     if (writeError) {
-      console.error("BLOCKCHAIN ERROR:", writeError);
-      const rawMessage = (writeError as any).shortMessage || writeError.message || "";
-      let msg = "Minting failed. " + rawMessage.split('\n')[0];
-      if (writeError.message.includes('User rejected')) msg = "Transaction rejected.";
+      console.error("Write Error:", writeError);
+      const msg = writeError.message.includes('User rejected') ? 'Transaction rejected by user' : 'Minting failed. Please try again.';
       setMintError(msg);
-      toast.error("Error", { description: msg });
+      toast.error("Minting Error", { description: msg });
     }
   }, [writeError]);
 
   const handleMint = useCallback(() => {
     if (!address) return;
+    
+    // Check Chain
     if (currentChainId !== base.id) {
       switchChain({ chainId: base.id });
       return;
     }
 
     setMintError(null);
-    const NATIVE_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' as `0x${string}`;
-    
+    const price = parseEther(MINT_PRICE);
+
     writeContract({
       address: CONTRACT_ADDRESS,
       abi: ABI,
       functionName: 'claim',
       args: [
         address,
-        TOKEN_ID,
         1n,
-        NATIVE_TOKEN,
-        0n,
+        '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+        price,
         {
           proof: [],
-          quantityLimitPerWallet: 10n,
-          pricePerToken: 0n,
-          currency: NATIVE_TOKEN
+          quantityLimitPerWallet: BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935"),
+          pricePerToken: price,
+          currency: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
         },
         '0x'
       ],
@@ -134,97 +167,63 @@ export default function OuwiboBaseApp() {
     });
   }, [address, currentChainId, switchChain, writeContract]);
 
-  if (!mounted) return null;
+  if (!mounted) return (
+    <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+      <div className="relative flex flex-col items-center gap-4">
+        <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+        <div className="absolute inset-0 bg-primary blur-3xl opacity-20 animate-pulse" />
+        <p className="text-[8px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Initialising Protocol</p>
+      </div>
+    </div>
+  );
 
   return (
-    <main className="min-h-screen bg-[#020617] text-slate-200 pb-16 overflow-hidden max-w-[430px] mx-auto relative touch-manipulation">
+    <main className="min-h-screen bg-[#020617] text-slate-200 font-sans selection:bg-primary/30 pb-16 overflow-hidden max-w-[430px] mx-auto relative touch-manipulation">
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-purple-900/5 rounded-full blur-[60px]" />
-        <div className="absolute bottom-[-5%] right-[-5%] w-[40%] h-[40%] bg-cyan-900/5 rounded-full blur-[60px]" />
+        <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-purple-900/10 rounded-full blur-[60px] animate-glow-pulse" />
+        <div className="absolute bottom-[-5%] right-[-5%] w-[40%] h-[40%] bg-cyan-900/10 rounded-full blur-[60px] animate-glow-pulse delay-1000" />
       </div>
 
       <header className="sticky top-0 z-50 px-3 py-2.5 backdrop-blur-xl border-b border-white/5 bg-[#020617]/80 flex items-center justify-between">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('explore')}>
-          <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-[#0f172a] border border-white/10 shadow-lg">
-            <Image src="/ouwibo-nft.png" alt="Logo" fill className="object-cover" />
+          <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-white/10 shadow-lg bg-[#0f172a]">
+            <Image src="/ouwibo-nft.png" alt="Ouwibo Logo" fill className="object-cover" />
           </div>
           <div className="text-left">
-            <h1 className="font-black text-xs text-white leading-none">OUWIBO</h1>
-            <p className="text-[6px] font-bold text-secondary uppercase tracking-widest mt-0.5">Base Network</p>
+            <h1 className="font-black text-xs tracking-tighter text-white leading-none">OUWIBO</h1>
+            <p className="text-[6px] font-black text-secondary uppercase tracking-widest mt-0.5 leading-none">Base Network</p>
           </div>
         </div>
-        <div className="scale-75 origin-right"><WalletConnector /></div>
+        <div className="flex items-center gap-2 scale-75 origin-right">
+          <WalletConnector />
+        </div>
       </header>
 
-      <div className="px-3 pt-3">
+      <div className="relative z-10 px-3 pt-3 pb-8 text-left">
         <AnimatePresence mode="wait">
-          {activeTab === 'explore' && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 text-left">
-              <section className="space-y-2 pb-6 border-b border-white/5">
-                <h1 className="text-4xl font-black italic text-white uppercase leading-none tracking-tighter">OUWIBO <br/> <span className="text-primary">GENESIS.</span></h1>
-                <p className="text-slate-400 text-[10px] font-medium max-w-[250px]">Official digital asset portal for the Ouwibo protocol on Base.</p>
-              </section>
-              <div className="bg-[#0f172a]/40 backdrop-blur-xl border border-white/5 rounded-3xl p-4 flex items-center gap-5 cursor-pointer hover:border-primary/30 transition-all active:scale-95 shadow-xl" onClick={() => setActiveTab('mint')}>
-                <div className="relative w-20 h-20 rounded-2xl overflow-hidden shadow-lg border border-white/10"><Image src="/ouwibo-nft.png" alt="NFT" fill className="object-cover" /></div>
-                <div className="flex-1 space-y-1">
-                  <h3 className="text-lg font-black text-white italic uppercase leading-none">Ouwibo Genesis</h3>
-                  <p className="text-[8px] text-slate-500 font-medium">Utility Access Pass • ERC-1155</p>
-                  <div className="flex items-center gap-1 text-base-emerald text-[7px] font-black uppercase pt-1 tracking-widest"><Zap size={8} className="fill-current" /> Status: {isStarted ? "Live Mint" : "Starting Soon"}</div>
-                </div>
-                <ChevronRight size={16} className="text-slate-600" />
-              </div>
-            </motion.div>
-          )}
-          
+          {activeTab === 'explore' && <ExploreView key="explore" onNftClick={handleViewNft} />}
           {activeTab === 'mint' && (
-            <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pt-2">
-              <div className="relative aspect-square max-w-[240px] mx-auto bg-[#0f172a] rounded-2xl overflow-hidden shadow-2xl border border-white/5">
-                <Image src="/ouwibo-nft.png" alt="NFT" fill className="object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-60" />
-              </div>
-              <div className="bg-[#0f172a]/40 backdrop-blur-3xl border border-white/5 rounded-2xl p-4 space-y-4 shadow-xl">
-                <div className="flex justify-between border-b border-white/5 pb-3 text-left">
-                  <div><p className="text-[6px] font-black text-slate-500 uppercase tracking-widest">Minting Fee</p><p className="text-sm font-black text-base-emerald uppercase">FREE + GAS</p></div>
-                  <div className="text-right"><p className="text-[6px] font-black text-slate-500 uppercase tracking-widest">Available Supply</p><p className="text-sm font-black text-white font-mono">{totalSupply?.toString() || '0'} / 6969</p></div>
-                </div>
-                {hasMinted ? (
-                  <div className="bg-base-emerald/10 border border-base-emerald/20 p-3 rounded-xl flex items-center gap-3">
-                    <div className="w-8 h-8 bg-base-emerald rounded-lg flex items-center justify-center shadow-lg"><CheckCircle2 size={18} className="text-black" /></div>
-                    <p className="text-[10px] font-black uppercase text-white leading-none">Genesis Pass Owned</p>
-                  </div>
-                ) : !isStarted ? (
-                  <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl flex flex-col items-center gap-2 text-center">
-                    <Clock size={24} className="text-amber-500 animate-pulse" />
-                    <p className="text-[10px] font-black uppercase text-white">Minting Starts Soon</p>
-                    <p className="text-[8px] text-slate-400 font-medium italic">Opens on March 10, 2026</p>
-                  </div>
-                ) : (
-                  <button 
-                    disabled={isPending || isConfirming || !address} 
-                    onClick={handleMint} 
-                    className={`w-full py-3.5 rounded-xl text-[10px] font-black uppercase transition-all shadow-xl flex items-center justify-center gap-2 ${currentChainId !== base.id && isConnected ? 'bg-amber-500 text-black' : 'bg-primary text-white active:scale-95 disabled:opacity-50'}`}
-                  >
-                    {(isPending || isConfirming) && <Loader2 size={12} className="animate-spin" />}
-                    {isConnected && currentChainId !== base.id ? "SWITCH TO BASE NETWORK" : (isPending || isConfirming) ? "PROCESSING..." : "INITIALIZE FREE MINT"}
-                  </button>
-                )}
-                {mintError && <p className="text-[8px] text-red-400 uppercase font-black text-center mt-2 italic leading-relaxed">{mintError}</p>}
-                {txHash && <a href={`https://basescan.org/tx/${txHash}`} target="_blank" className="text-[6px] font-bold text-secondary uppercase hover:underline text-center block mt-2">View Transaction Receipt ↗</a>}
-              </div>
-            </motion.div>
+            <MintView 
+              key="mint" 
+              isConnected={isConnected} 
+              currentChainId={currentChainId}
+              minted={hasMinted} 
+              setTxHash={setTxHash} 
+              txHash={txHash} 
+              totalSupply={totalSupply} 
+              loadingSupply={loadingSupply} 
+              address={address} 
+              shareToWarpcast={shareToWarpcast} 
+              nft={selectedNft} 
+              handleMint={handleMint} 
+              mintError={mintError}
+              isPending={isPending}
+              isConfirming={isConfirming}
+              price={MINT_PRICE}
+            />
           )}
-
-          {activeTab === 'profile' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 text-left">
-              <div className="bg-white/5 border border-white/10 p-4 rounded-2xl flex justify-between items-center shadow-lg">
-                <div><p className="text-[7px] text-slate-500 font-black uppercase tracking-widest leading-none">UTILITY BALANCE</p><p className="text-lg font-black italic text-white mt-1 uppercase leading-none">Genesis Pass</p></div>
-                <p className="text-2xl font-black text-white font-mono">{userBalance?.toString() || '0'}</p>
-              </div>
-              <ProfileView address={address} />
-            </motion.div>
-          )}
-
-          {activeTab === 'ai' && <AiChatView />}
+          {activeTab === 'profile' && <ProfileView key="profile" address={address} userBalance={userBalance} />}
+          {activeTab === 'ai' && <AiChatView key="ai" />}
         </AnimatePresence>
       </div>
 
@@ -233,9 +232,9 @@ export default function OuwiboBaseApp() {
           { id: 'explore', icon: LayoutGrid, label: 'Explore' },
           { id: 'mint', icon: Zap, label: 'Mint' },
           { id: 'profile', icon: User, label: 'Wallet' },
-          { id: 'ai', icon: Bot, label: 'AI' },
+          { id: 'ai', icon: Bot, label: 'Clawdbot' },
         ].map((tab) => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all ${activeTab === tab.id ? 'bg-primary text-white scale-105 shadow-lg' : 'text-slate-500'}`}>
+          <button key={tab.id} onClick={() => setActiveTab(tab.id as Tab)} className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-300 ${activeTab === tab.id ? 'bg-primary text-white scale-105' : 'text-slate-500'}`}>
             <tab.icon size={14} strokeWidth={activeTab === tab.id ? 3 : 2} />
             <span className="text-[6px] font-black uppercase tracking-widest">{tab.label}</span>
           </button>
@@ -245,33 +244,315 @@ export default function OuwiboBaseApp() {
   );
 }
 
-function ProfileView({ address }: any) {
-  const { sendTransaction, isPending } = useSendTransaction();
+function ExploreView({ onNftClick }: any) {
   return (
-    <button 
-      disabled={isPending}
-      onClick={() => sendTransaction({ to: CREATOR_WALLET as `0x${string}`, value: parseEther("0.001"), chainId: base.id })}
-      className="w-full bg-secondary/10 border border-secondary/20 p-4 rounded-2xl flex justify-between items-center transition-all hover:bg-secondary/20 group"
-    >
-      <div className="flex gap-3 items-center">
-        <div className="w-10 h-10 bg-secondary/20 rounded-lg flex items-center justify-center text-secondary">
-          {isPending ? <Loader2 size={18} className="animate-spin" /> : <Coffee size={18} />}
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 text-left">
+      <section className="space-y-2 pt-1 border-b border-white/5 pb-6 text-left">
+        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 border border-primary/20 rounded-md">
+          <ShieldCheck size={8} className="text-primary" />
+          <span className="text-[6px] font-black text-primary uppercase tracking-widest leading-none">Verified Infrastructure</span>
         </div>
-        <div className="text-left">
-          <p className="text-[7px] text-slate-500 font-black uppercase tracking-widest">SUPPORT CREATOR</p>
-          <p className="text-xs font-black text-white italic uppercase leading-none mt-1 group-hover:text-secondary">Buy a Coffee</p>
+        <h1 className="text-4xl font-black italic tracking-tighter text-white leading-none uppercase text-left">
+          OUWIBO <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary text-left">GENESIS.</span>
+        </h1>
+        <p className="text-slate-400 text-[10px] font-medium italic leading-tight max-w-[280px] text-left">
+          The official digital asset portal for the Ouwibo protocol on the Base network. Mint your utility NFTs to unlock full access to the ecosystem.
+        </p>
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex items-center justify-between text-left">
+          <h2 className="text-[10px] font-black italic uppercase tracking-[0.2em] text-slate-500 text-left leading-none">Official Collection</h2>
+          <span className="w-12 h-[1px] bg-white/5" />
+        </div>
+        
+        <div className="flex flex-col gap-4">
+          {NFT_COLLECTION.map((nft) => (
+            <motion.div key={nft.id.toString()} whileTap={{ scale: 0.98 }} onClick={() => onNftClick(nft.id)} className="group relative bg-[#0f172a]/40 backdrop-blur-xl border border-white/5 rounded-3xl p-4 flex items-center gap-5 transition-all active:border-primary/50 text-left" >
+              <div className="relative w-20 h-20 shrink-0 rounded-2xl overflow-hidden border border-white/10 shadow-lg">
+                <Image src={nft.image} alt={nft.name} fill className="object-cover" />
+              </div>
+              <div className="flex-1 space-y-1.5 pr-2 text-left">
+                <div className="flex items-center justify-between text-left">
+                  <span className="text-[7px] font-black text-secondary uppercase tracking-widest bg-secondary/10 px-1.5 py-0.5 rounded-md leading-none">Primary Pass</span>
+                  <span className="text-[8px] font-black text-slate-600 uppercase italic leading-none">ID #{nft.id.toString()}</span>
+                </div>
+                <h3 className="text-lg font-black italic uppercase text-white leading-none tracking-tight group-hover:text-primary transition-colors text-left">{nft.name}</h3>
+                <p className="text-[9px] text-slate-400 font-medium leading-tight line-clamp-2 italic text-left">{nft.tagline}</p>
+                <div className="flex items-center gap-1 text-base-emerald text-[7px] font-black uppercase tracking-widest pt-1 leading-none text-left">
+                  <Zap size={8} className="fill-current" /> Status: Open Mint
+                </div>
+              </div>
+              <div className="shrink-0 text-slate-600 group-hover:text-primary transition-colors">
+                <ChevronRight size={16} />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+    </motion.div>
+  );
+}
+
+function MintView({ isConnected, currentChainId, minted, setTxHash, txHash, totalSupply, loadingSupply, address, shareToWarpcast, nft, handleMint, mintError, isPending, isConfirming, price }: any) {
+  const wrongNetwork = isConnected && currentChainId !== base.id;
+
+  return (
+    <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pt-2 text-left pb-8">
+      <div className="relative aspect-square w-full max-w-[240px] mx-auto bg-[#0f172a] rounded-2xl overflow-hidden border border-white/5 shadow-xl">
+        <Image src={nft.image} alt="NFT" fill className="object-cover" priority />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-60" />
+        <div className="absolute bottom-3 left-3 right-3 text-left">
+          <p className="text-primary text-[8px] font-black uppercase tracking-widest mb-0.5 leading-none">Official Genesis</p>
+          <h2 className="text-lg font-black italic uppercase text-white leading-none truncate">{nft.name}</h2>
         </div>
       </div>
-      <p className="text-xs font-black text-secondary font-mono">0.001 ETH</p>
-    </button>
+
+      <div className="bg-[#0f172a]/40 backdrop-blur-3xl border border-white/5 rounded-2xl p-4 space-y-4 text-left">
+        <div className="flex justify-between items-center border-b border-white/5 pb-3">
+          <div className="text-left">
+            <p className="text-[6px] font-black text-slate-500 uppercase tracking-widest mb-0.5 leading-none">Minting Fee</p>
+            <p className="text-sm font-black italic text-base-emerald uppercase leading-none">Free + Gas</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[6px] font-black text-slate-500 uppercase tracking-widest mb-0.5 leading-none">Total Minted</p>
+            <p className="text-sm font-black italic text-white tracking-tighter leading-none font-mono">
+              {loadingSupply ? '..' : (totalSupply?.toString() || '0')}
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {mintError && (
+            <div className="p-3 bg-red-900/20 border border-red-500/20 rounded-xl flex items-center gap-2">
+              <AlertCircle size={12} className="text-red-500 shrink-0" />
+              <p className="text-[8px] font-black text-red-400 uppercase tracking-widest leading-tight">{mintError}</p>
+            </div>
+          )}
+
+          {!minted ? (
+            isConnected ? (
+              <button 
+                disabled={isPending || isConfirming} 
+                onClick={handleMint} 
+                className={`w-full font-black py-3.5 rounded-xl text-[10px] uppercase shadow-lg border-none active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 ${wrongNetwork ? 'bg-amber-500 text-black' : 'bg-gradient-to-r from-primary to-indigo-600 text-white'}`}
+              >
+                {(isPending || isConfirming) && <Loader2 size={12} className="animate-spin" />}
+                {wrongNetwork ? "SWITCH TO BASE NETWORK" : isConfirming ? "CONFIRMING..." : isPending ? "WAITING FOR WALLET..." : "INITIALIZE FREE MINT"}
+              </button>
+            ) : (
+              <div className="p-6 border border-dashed border-white/10 rounded-xl text-center space-y-4 flex flex-col items-center">
+                <Wallet className="text-slate-600" size={24} />
+                <p className="text-[7px] font-black text-slate-500 uppercase tracking-widest italic leading-none text-center">Connect to proceed</p>
+                <WalletConnector />
+              </div>
+            )
+          ) : (
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="space-y-2.5">
+              <div className="bg-base-emerald/10 border border-base-emerald/20 p-3 rounded-xl flex items-center gap-3 text-left">
+                <div className="w-8 h-8 bg-base-emerald rounded-lg flex items-center justify-center shadow-lg">
+                  <CheckCircle2 size={18} className="text-black" />
+                </div>
+                <div className="text-left">
+                  <h4 className="text-[10px] font-black uppercase text-white leading-none">Genesis Pass Owned</h4>
+                  <p className="text-[6px] font-bold text-slate-400 uppercase leading-none mt-1">Ready for $OWB Protocol Rewards</p>
+                  {txHash && <a href={`https://basescan.org/tx/${txHash}`} target="_blank" className="text-[6px] font-bold text-secondary uppercase hover:underline leading-none mt-2 block">Explorer Receipt ↗</a>}
+                </div>
+              </div>
+              <button onClick={shareToWarpcast} className="w-full bg-white text-black font-black py-3 rounded-xl text-[8px] uppercase tracking-widest shadow-xl">
+                Share Achievement
+              </button>
+            </motion.div>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function ProfileView({ address, userBalance }: any) {
+  const { sendTransaction, isPending } = useSendTransaction();
+
+  const handleDonate = () => {
+    if (!address) return;
+    sendTransaction({
+      to: CREATOR_WALLET as `0x${string}`,
+      value: parseEther("0.001"),
+      chainId: base.id,
+    }, {
+      onSuccess: () => toast.success("Donation Successful", { description: "Thank you for supporting the protocol creator! ☕" }),
+      onError: (err) => {
+        if (!err.message.includes('User rejected')) {
+          toast.error("Donation Failed", { description: "Something went wrong with the transaction." });
+        }
+      }
+    });
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 pt-2 text-left">
+      <div className="relative h-32 bg-slate-900 rounded-3xl overflow-hidden border border-white/5">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-transparent to-secondary/30" />
+        <div className="absolute -bottom-6 left-6">
+          <div className="w-20 h-20 bg-[#020617] border-4 border-[#020617] rounded-2xl shadow-xl flex items-center justify-center overflow-hidden text-3xl">💎</div>
+        </div>
+      </div>
+      <div className="px-6 pt-4 space-y-1">
+        <h2 className="text-xl font-black italic uppercase text-white truncate">{address ? `${address.slice(0,6)}...${address.slice(-4)}` : 'Guest'}</h2>
+        <p className="text-[8px] font-black text-secondary uppercase tracking-[0.3em] italic leading-none">Identity Verified on Base</p>
+      </div>
+      <div className="px-6 space-y-4">
+        <div className="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center text-primary"><Zap size={20} /></div>
+            <div><p className="text-[7px] font-black text-slate-500 uppercase leading-none">Utility Balance</p><p className="text-lg font-black italic text-white leading-none mt-1">Genesis Pass</p></div>
+          </div>
+          <p className="text-2xl font-black italic text-white leading-none">{userBalance === undefined ? '...' : (userBalance?.toString() || '0')}</p>
+        </div>
+
+        <button 
+          onClick={handleDonate}
+          disabled={isPending}
+          className="w-full bg-secondary/10 border border-secondary/20 hover:bg-secondary/20 p-4 rounded-2xl flex items-center justify-between transition-all group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-secondary/20 rounded-lg flex items-center justify-center text-secondary">
+              {isPending ? <Loader2 size={18} className="animate-spin" /> : <Coffee size={18} />}
+            </div>
+            <div className="text-left">
+              <p className="text-[7px] font-black text-slate-500 uppercase leading-none">Support Ecosystem</p>
+              <p className="text-xs font-black italic text-white leading-none mt-1 group-hover:text-secondary transition-colors">Buy Creator a Coffee</p>
+            </div>
+          </div>
+          <div className="flex flex-col items-end">
+             <p className="text-xs font-black italic text-secondary leading-none">0.001 ETH</p>
+             <Heart size={10} className="text-secondary mt-1 fill-current animate-pulse" />
+          </div>
+        </button>
+      </div>
+    </motion.div>
   );
 }
 
 function AiChatView() {
+  const [messages, setMessages] = useState([
+    { role: 'bot', text: 'Protocol connection established. I am the Ouwibo Archive Core. How can I assist with your Genesis Pass or the $OWB tokenomics?' }
+  ]);
+  const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<null | HTMLDivElement>(null);
+
+  const KNOWLEDGE_BASE: Record<string, string> = {
+    'genesis': 'The **OUWIBO Genesis Pass** is our legendary tier asset. It grants 100% governance rights and the highest multiplier for $OWB allocations.',
+    'owb': '**$OWB** is the native utility token of the Atlantis ecosystem. 60% of the supply is reserved for the community, primarily Genesis holders.',
+    'base': 'We are built natively on **Base**, the secure and low-cost Layer 2 network powered by Coinbase.',
+    'mint': 'You can initialize your mint in the **Mint** tab. Remember, the limit is **1 Pass per wallet** to ensure fair distribution.',
+    'airdrop': 'The first snapshot for the **$OWB airdrop** is scheduled for Q2 2026. Keep your Genesis Pass secured in your wallet.',
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
+
+  const handleSend = async (textOverride?: string) => {
+    const messageText = textOverride || input;
+    if (!messageText.trim()) return;
+
+    const userMsg = { role: 'user', text: messageText };
+    setMessages(prev => [...prev, userMsg]);
+    if (!textOverride) setInput('');
+    
+    setIsTyping(true);
+
+    // Simulate AI Processing
+    setTimeout(() => {
+      let response = "I'm synchronizing with the protocol archives. Could you be more specific? I have detailed data on **Genesis**, **$OWB token**, and **Base network**.";
+      
+      const lowerInput = messageText.toLowerCase();
+      for (const key in KNOWLEDGE_BASE) {
+        if (lowerInput.includes(key)) {
+          response = KNOWLEDGE_BASE[key];
+          break;
+        }
+      }
+
+      setIsTyping(false);
+      setMessages(prev => [...prev, { role: 'bot', text: response }]);
+    }, 1500);
+  };
+
   return (
-    <div className="h-[60vh] flex flex-col items-center justify-center text-center p-6">
-      <Bot size={40} className="text-primary mb-4 animate-pulse" />
-      <p className="italic text-slate-500 text-xs font-medium max-w-[200px] leading-relaxed text-center">OUWIBO AI core is currently synchronizing with the protocol archives...</p>
-    </div>
+    <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="h-[72vh] flex flex-col gap-4 text-left">
+      <div className="flex items-center justify-between border-b border-white/5 pb-4 px-1">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-tr from-primary to-secondary rounded-2xl flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.3)]">
+            <Bot size={20} className="text-white" />
+          </div>
+          <div>
+            <h2 className="text-lg font-black italic uppercase text-white leading-none">CLAWDBOT</h2>
+            <div className="flex items-center gap-1.5 mt-1">
+              <span className="w-1 h-1 bg-base-emerald rounded-full animate-pulse" />
+              <p className="text-[7px] font-black text-secondary uppercase tracking-widest leading-none">Quantum Neural Core Active</p>
+            </div>
+          </div>
+        </div>
+        <div className="px-3 py-1 bg-white/5 rounded-lg border border-white/10 text-[7px] font-black text-slate-500 uppercase tracking-widest">v1.2.0-PRO</div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-1 space-y-4 scrollbar-hide pb-4">
+        {messages.map((msg, i) => (
+          <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-[85%] p-4 rounded-2xl text-[11px] font-medium leading-relaxed shadow-sm ${
+              msg.role === 'user' 
+                ? 'bg-primary text-white rounded-tr-none' 
+                : 'bg-white/5 border border-white/10 text-slate-300 rounded-tl-none italic'
+            }`}>
+              <div dangerouslySetInnerHTML={{ __html: msg.text.replace(/\*\*(.*?)\*\*/g, '<b class="text-secondary">$1</b>') }} />
+            </div>
+          </motion.div>
+        ))}
+        {isTyping && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
+            <div className="bg-white/5 border border-white/10 p-3 rounded-2xl flex gap-1">
+              <div className="w-1 h-1 bg-primary rounded-full animate-bounce" />
+              <div className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:0.2s]" />
+              <div className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:0.4s]" />
+            </div>
+          </motion.div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Quick Suggestions */}
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        {['What is $OWB?', 'Genesis Utility', 'Base Network'].map((q) => (
+          <button 
+            key={q} 
+            onClick={() => handleSend(q)}
+            className="whitespace-nowrap px-3 py-1.5 bg-white/5 border border-white/5 rounded-lg text-[8px] font-bold text-slate-400 uppercase hover:bg-primary/20 hover:text-white transition-all"
+          >
+            {q}
+          </button>
+        ))}
+      </div>
+
+      <div className="p-2 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-2 focus-within:border-primary/50 transition-all">
+        <input 
+          type="text" 
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+          placeholder="Ask Clawdbot about the protocol..." 
+          className="flex-1 bg-transparent border-none outline-none px-3 py-2 text-xs placeholder:text-slate-600 italic" 
+        />
+        <button onClick={() => handleSend()} className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center hover:bg-secondary transition-all shadow-lg active:scale-90">
+          <Send size={16} className="text-white" />
+        </button>
+      </div>
+    </motion.div>
   );
 }
