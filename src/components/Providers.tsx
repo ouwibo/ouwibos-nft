@@ -10,7 +10,6 @@ import {
 import { WagmiProvider, http } from 'wagmi';
 import { base } from 'wagmi/chains';
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
 
 const config = getDefaultConfig({
   appName: 'OUWIBO CRYPTO',
@@ -21,12 +20,6 @@ const config = getDefaultConfig({
     [base.id]: http(),
   },
 });
-
-// Add Farcaster Frame connector to the beginning of the list
-const connectors = config.connectors;
-if (!connectors.some(c => c.id === 'farcaster')) {
-  (config as any).connectors = [farcasterFrame(), ...connectors];
-}
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());

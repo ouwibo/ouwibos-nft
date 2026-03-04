@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import sdk from "@farcaster/miniapp-sdk";
+import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
 import { WalletConnector } from '@/components/WalletConnector';
 
 // STABLE CONFIG - NO ENV DEPENDENCY FOR CRITICAL PATH
@@ -38,7 +39,7 @@ const ABI = parseAbi([
 
 export default function OuwiboBaseApp() {
   const { address, isConnected } = useAccount();
-  const { connect, connectors } = useConnect();
+  const { connect } = useConnect();
   const currentChainId = useChainId();
   const { switchChain } = useSwitchChain();
   
@@ -51,15 +52,14 @@ export default function OuwiboBaseApp() {
     const init = async () => {
       try {
         await sdk.actions.ready();
-        const farcasterConnector = connectors.find(c => c.id === 'farcaster');
-        if (farcasterConnector && !isConnected) {
-          connect({ connector: farcasterConnector });
+        if (!isConnected) {
+          connect({ connector: farcasterFrame() });
         }
       } catch (e) { console.error("SDK Error", e); }
     };
     init();
     setMounted(true);
-  }, [connectors, connect, isConnected]);
+  }, [connect, isConnected]);
 
   // Read Logic
   const { data: totalSupply } = useReadContract({
