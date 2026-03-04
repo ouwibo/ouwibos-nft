@@ -28,7 +28,7 @@ import { WalletConnector } from '@/components/WalletConnector';
 const CONTRACT_ADDRESS = "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25" as `0x${string}`;
 const MINT_PRICE = "0"; 
 const CREATOR_WALLET = "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2";
-const TOKEN_ID = 0n; // Default ID for most Edition Drops
+const TOKEN_ID = 0n; 
 
 // Standard Thirdweb ERC-1155 (Edition Drop) ABI
 const ABI = ([
@@ -130,7 +130,9 @@ export default function OuwiboBaseApp() {
 
   useEffect(() => {
     if (writeError) {
-      console.error("Write Error:", writeError);
+      // Debugging mendalam untuk user
+      console.error("FULL CONTRACT ERROR:", writeError);
+      
       let msg = "Minting failed. Simulation might have failed.";
       
       if (writeError.message.includes('User rejected')) {
@@ -140,7 +142,7 @@ export default function OuwiboBaseApp() {
       } else if (writeError.message.includes('exceeds the max supply')) {
         msg = "Max supply reached.";
       } else if (writeError.message.includes('not eligible')) {
-        msg = "Wallet not eligible or limit reached.";
+        msg = "Wallet not eligible. Check if you have already minted.";
       }
 
       setMintError(msg);
@@ -160,7 +162,7 @@ export default function OuwiboBaseApp() {
     setMintError(null);
     const price = parseEther(MINT_PRICE);
 
-    // ERC-1155 Drop claim
+    // ERC-1155 Drop claim - Optimized parameters
     writeContract({
       address: CONTRACT_ADDRESS,
       abi: ABI,
@@ -173,9 +175,9 @@ export default function OuwiboBaseApp() {
         price,               // _pricePerToken
         {
           proof: [],         // _allowlistProof
-          quantityLimitPerWallet: BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935"), // Max uint256
-          pricePerToken: price, // Price in proof
-          currency: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' // Currency in proof
+          quantityLimitPerWallet: 0n, // '0' tells the contract to use the default condition limit
+          pricePerToken: price, 
+          currency: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' 
         },
         '0x'                 // _data
       ],
@@ -527,7 +529,7 @@ function AiChatView() {
                 ? 'bg-primary text-white rounded-tr-none' 
                 : 'bg-white/5 border border-white/10 text-slate-300 rounded-tl-none italic'
             }`}>
-              <div dangerouslySetInnerHTML={{ __html: msg.text.replace(/\*\*(.*?)\*\*/g, '<b class="text-secondary">$1</b>') }} />
+              <div dangerouslySetInnerHTML={{ __html: msg.text.replace(/\*\frac{(.*?)\*\*/g, '<b class="text-secondary">$1</b>') }} />
             </div>
           </motion.div>
         ))}
