@@ -28,17 +28,18 @@ import { WalletConnector } from '@/components/WalletConnector';
 const CONTRACT_ADDRESS = "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25" as `0x${string}`;
 const MINT_PRICE = "0"; 
 const CREATOR_WALLET = "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2";
+const TOKEN_ID = 0n; // Default ID for most Edition Drops
 
-// Standard Thirdweb ERC-721 Claim ABI
+// Standard Thirdweb ERC-1155 (Edition Drop) ABI
 const ABI = ([
-  "function claim(address receiver, uint256 quantity, address currency, uint256 pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) allowlistProof, bytes data) external payable",
-  "function totalSupply() view returns (uint256)",
-  "function balanceOf(address account) view returns (uint256)"
+  "function claim(address receiver, uint256 tokenId, uint256 quantity, address currency, uint256 pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) allowlistProof, bytes data) external payable",
+  "function totalSupply(uint256 id) view returns (uint256)",
+  "function balanceOf(address account, uint256 id) view returns (uint256)"
 ]);
 
 const NFT_COLLECTION = [
   { 
-    id: 0n, 
+    id: TOKEN_ID, 
     name: "Ouwibo Genesis", 
     tier: "Legendary", 
     supply: 6969, 
@@ -57,7 +58,7 @@ export default function OuwiboBaseApp() {
   const { switchChain } = useSwitchChain();
   
   const [activeTab, setActiveTab] = useState<Tab>('explore');
-  const [selectedNftId, setSelectedNftId] = useState<bigint>(0n);
+  const [selectedNftId, setSelectedNftId] = useState<bigint>(TOKEN_ID);
   const [minted, setMinted] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -86,6 +87,7 @@ export default function OuwiboBaseApp() {
     address: CONTRACT_ADDRESS,
     abi: ABI,
     functionName: 'totalSupply',
+    args: [TOKEN_ID],
     chainId: base.id,
   });
 
@@ -93,7 +95,7 @@ export default function OuwiboBaseApp() {
     address: CONTRACT_ADDRESS,
     abi: ABI,
     functionName: 'balanceOf',
-    args: [address || "0x0000000000000000000000000000000000000000"],
+    args: [address || "0x0000000000000000000000000000000000000000", TOKEN_ID],
     chainId: base.id,
   });
 
@@ -158,13 +160,14 @@ export default function OuwiboBaseApp() {
     setMintError(null);
     const price = parseEther(MINT_PRICE);
 
-    // ERC-721 Drop claim
+    // ERC-1155 Drop claim
     writeContract({
       address: CONTRACT_ADDRESS,
       abi: ABI,
       functionName: 'claim',
       args: [
         address,             // _receiver
+        TOKEN_ID,            // _tokenId
         1n,                  // _quantity
         '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // _currency (Native ETH)
         price,               // _pricePerToken
