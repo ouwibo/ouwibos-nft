@@ -25,10 +25,11 @@ import sdk from "@farcaster/miniapp-sdk";
 import { WalletConnector } from '@/components/WalletConnector';
 
 // Constants
-const CONTRACT_ADDRESS = "0x69A11773Dce51E894f97278F3d40Aae8efEde91f" as `0x${string}`;
+const CONTRACT_ADDRESS = "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25" as `0x${string}`;
 const MINT_PRICE = "0"; 
 const CREATOR_WALLET = "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2";
 
+// Standard Thirdweb ERC-721 Claim ABI
 const ABI = ([
   "function claim(address receiver, uint256 quantity, address currency, uint256 pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) allowlistProof, bytes data) external payable",
   "function totalSupply() view returns (uint256)",
@@ -128,7 +129,18 @@ export default function OuwiboBaseApp() {
   useEffect(() => {
     if (writeError) {
       console.error("Write Error:", writeError);
-      const msg = writeError.message.includes('User rejected') ? 'Transaction rejected by user' : 'Minting failed. Please try again.';
+      let msg = "Minting failed. Simulation might have failed.";
+      
+      if (writeError.message.includes('User rejected')) {
+        msg = "Transaction rejected by user.";
+      } else if (writeError.message.includes('insufficient funds')) {
+        msg = "Insufficient ETH for gas fees on Base.";
+      } else if (writeError.message.includes('exceeds the max supply')) {
+        msg = "Max supply reached.";
+      } else if (writeError.message.includes('not eligible')) {
+        msg = "Wallet not eligible or limit reached.";
+      }
+
       setMintError(msg);
       toast.error("Minting Error", { description: msg });
     }
@@ -146,22 +158,23 @@ export default function OuwiboBaseApp() {
     setMintError(null);
     const price = parseEther(MINT_PRICE);
 
+    // ERC-721 Drop claim
     writeContract({
       address: CONTRACT_ADDRESS,
       abi: ABI,
       functionName: 'claim',
       args: [
-        address,
-        1n,
-        '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-        price,
+        address,             // _receiver
+        1n,                  // _quantity
+        '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // _currency (Native ETH)
+        price,               // _pricePerToken
         {
-          proof: [],
-          quantityLimitPerWallet: BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935"),
-          pricePerToken: price,
-          currency: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
+          proof: [],         // _allowlistProof
+          quantityLimitPerWallet: BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935"), // Max uint256
+          pricePerToken: price, // Price in proof
+          currency: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' // Currency in proof
         },
-        '0x'
+        '0x'                 // _data
       ],
       chainId: base.id,
     });
