@@ -23,7 +23,7 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL
   ? process.env.NEXT_PUBLIC_APP_URL 
   : process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
-    : "https://ouwibos-nft.vercel.app";
+    : "https://ouwibo-nft.vercel.app";
 
 const miniAppConfig = {
   version: "1",
