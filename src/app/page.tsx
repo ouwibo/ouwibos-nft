@@ -180,7 +180,7 @@ export default function OuwiboBaseApp() {
           }
         ],
         capabilities: {
-          dataSuffix: Attribution.toDataSuffix() // Automatically handles the 8021 format
+          dataSuffix: Attribution.toDataSuffix({ codes: ['bc_dcumvl7a'] })
         }
       });
     } catch (err: any) {
@@ -307,7 +307,7 @@ function ProfileView({ address }: any) {
           value: parseEther("0.001")
         }],
         capabilities: {
-          dataSuffix: Attribution.toDataSuffix() // Automatically handles the 8021 format
+          dataSuffix: Attribution.toDataSuffix({ codes: ['bc_dcumvl7a'] })
         }
       })}
       className="w-full bg-secondary/10 border border-secondary/20 p-4 rounded-2xl flex justify-between items-center transition-all hover:bg-secondary/20 group"
