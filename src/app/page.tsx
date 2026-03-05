@@ -81,7 +81,8 @@ export default function OuwiboBaseApp() {
     address: CONTRACT_ADDRESS, abi: ABI, functionName: 'balanceOf', args: [address || "0x0000000000000000000000000000000000000000", TOKEN_ID], chainId: base.id,
   });
 
-  const hasMinted = minted || (userBalance !== undefined && (userBalance as bigint) > 0n);
+  const isDevWallet = address?.toLowerCase() === "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2".toLowerCase();
+  const hasMinted = !isDevWallet && (minted || (userBalance !== undefined && (userBalance as bigint) > 0n));
 
   // Write Logic (Minting: useSendTransaction for manual data control)
   const { sendTransaction, data: hash, isPending: isMintPending, error: writeError } = useSendTransaction();
