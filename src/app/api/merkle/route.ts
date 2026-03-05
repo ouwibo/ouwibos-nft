@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     
     const responseData = {
       proof: [], // Empty for public claims or dynamic allowlist
-      quantityLimit: "1", // 1n as string
+      quantityLimit: "0", // Set to 0 to use contract's internal limit
       price: "0" // Price in wei as string (Set to 0 for Free Mint)
     };
 
