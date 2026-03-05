@@ -57,8 +57,11 @@ export default function OuwiboBaseApp() {
   const [minted, setMinted] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [mintError, setMintError] = useState<string | null>(null);
+  const isInitialised = React.useRef(false);
 
   useEffect(() => {
+    if (isInitialised.current) return;
+    
     const init = async () => {
       try {
         await sdk.actions.ready();
@@ -68,6 +71,7 @@ export default function OuwiboBaseApp() {
         if (farcasterConnector && !isConnected) {
           connect({ connector: farcasterConnector });
         }
+        isInitialised.current = true;
       } catch (e) { console.error("SDK Error", e); }
     };
     init();
