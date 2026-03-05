@@ -11,8 +11,10 @@ import {
   useReadContract, 
   useSwitchChain,
   useChainId,
+  useSendTransaction,
+  useWaitForTransactionReceipt
 } from 'wagmi';
-import { useSendCalls, useCallsStatus } from 'wagmi/experimental';
+import { useSendCalls } from 'wagmi/experimental';
 import { 
   LayoutGrid, User, Loader2, 
   Zap, CheckCircle2,
@@ -81,17 +83,15 @@ export default function OuwiboBaseApp() {
 
   const hasMinted = minted || (userBalance !== undefined && (userBalance as bigint) > 0n);
 
-  // Write Logic (Updated to use sendCalls for ERC-8021 capabilities)
-  const { sendCalls, data: callData, isPending, error: writeError } = useSendCalls();
-  const callId = typeof callData === 'string' ? callData : callData?.id;
-  const { data: callsStatus } = useCallsStatus({
-    id: callId as string,
-    query: { enabled: !!callId },
-  });
+  // Write Logic (Minting: useSendTransaction for manual data control)
+  const { sendTransaction, data: hash, isPending: isMintPending, error: writeError } = useSendTransaction();
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
 
-  const isConfirming = callsStatus?.status === 'pending';
-  const isConfirmed = callsStatus?.status === 'success';
-  
+  // Support Logic (Keep useSendCalls for profiling)
+  const { sendCalls, isPending: isCallPending } = useSendCalls();
+
+  const isPending = isMintPending || isCallPending;
+
   // Custom states for the fetching process
   const [isFetchingProof, setIsFetchingProof] = useState(false);
 
@@ -99,17 +99,16 @@ export default function OuwiboBaseApp() {
     if (isConfirmed) {
       setMinted(true);
       refetchBalance();
-      const txHash = callsStatus?.receipts?.[0]?.transactionHash;
       
       toast.success("Transaction Confirmed!", { 
         description: "NFT secured in your wallet.",
-        action: txHash ? {
+        action: hash ? {
           label: "View BaseScan",
-          onClick: () => window.open(`https://basescan.org/tx/${txHash}`, "_blank")
+          onClick: () => window.open(`https://basescan.org/tx/${hash}`, "_blank")
         } : undefined
       });
     }
-  }, [isConfirmed, refetchBalance, callsStatus]);
+  }, [isConfirmed, refetchBalance, hash]);
 
   useEffect(() => {
     if (writeError) {
@@ -170,19 +169,20 @@ export default function OuwiboBaseApp() {
         ]
       });
 
-      // 3. Manually append Builder Code (Safest method for all wallets)
+      // 3. Manually append Builder Code (SELALU jalankan)
       const attributionData = Attribution.toDataSuffix({ codes: ['bc_dcumvl7a'] });
       const dataWithSuffix = `${calldata}${attributionData.value.slice(2)}` as Hex;
 
-      // 4. Send calls with manually appended data
-      sendCalls({
-        calls: [
-          {
-            to: CONTRACT_ADDRESS,
-            data: dataWithSuffix,
-            value: BigInt(proofData.price) 
-          }
-        ]
+      // 4. Debug log (Sesuai instruksi)
+      console.log('Original:', calldata.slice(0, 10) + '...');
+      console.log('With suffix:', dataWithSuffix.slice(-66)); // liat 8021 x8
+
+      // 5. Send Transaction
+      sendTransaction({
+        to: CONTRACT_ADDRESS,
+        data: dataWithSuffix, // HARUS pakai ini
+        value: BigInt(proofData.price),
+        chainId: base.id
       });
 
     } catch (err: any) {
@@ -192,7 +192,7 @@ export default function OuwiboBaseApp() {
     } finally {
       setIsFetchingProof(false);
     }
-  }, [address, currentChainId, switchChain, sendCalls]);
+  }, [address, currentChainId, switchChain, sendTransaction]);
 
   if (!mounted) return null;
 
