@@ -9,36 +9,24 @@ import {
   useAccount, 
   useConnect, 
   useReadContract, 
-  useWaitForTransactionReceipt,
   useSwitchChain,
   useChainId,
-  useSendTransaction
 } from 'wagmi';
+import { useSendCalls, useCallsStatus } from 'wagmi/experimental';
 import { 
   LayoutGrid, User, Loader2, 
   Zap, CheckCircle2,
-  ChevronRight, Bot, Send, Wallet, Coffee, Heart, Clock
+  ChevronRight, Bot, Coffee, ExternalLink
 } from 'lucide-react';
 import { toast } from 'sonner';
 import sdk from "@farcaster/frame-sdk";
 import { WalletConnector } from '@/components/WalletConnector';
+import { Attribution } from '@/lib/erc8021';
 
 // STABLE CONFIG - NO ENV DEPENDENCY FOR CRITICAL PATH
-const CONTRACT_ADDRESS = "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25" as `0x${string}`;
+const CONTRACT_ADDRESS = "0x075Bb11C9eeEfdd7b5AF5244Df2fb1f08BfA4146" as `0x${string}`;
 const CREATOR_WALLET = "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2";
 const TOKEN_ID = 0n; 
-
-/**
- * ERC-8021 BUILDER CODE INTEGRATION
- * To get your unique builder code, visit: https://base.dev/settings
- */
-// User's specific Builder Code
-const BUILDER_CODE_SUFFIX = "0x62635f6463756d766c37610b0080218021802180218021802180218021" as Hex;
-
-const appendBuilderSuffix = (data: Hex): Hex => {
-  if (data === '0x' || !data) return BUILDER_CODE_SUFFIX;
-  return `${data}${BUILDER_CODE_SUFFIX.slice(2)}` as Hex;
-};
 
 // ABI - Standard ERC-1155
 const ABI = parseAbi([
@@ -93,64 +81,115 @@ export default function OuwiboBaseApp() {
 
   const hasMinted = minted || (userBalance !== undefined && (userBalance as bigint) > 0n);
 
-  // Write Logic (Updated to use sendTransaction for Builder Code attribution)
-  const { sendTransaction, data: hash, isPending, error: writeError } = useSendTransaction();
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
+  // Write Logic (Updated to use sendCalls for ERC-8021 capabilities)
+  const { sendCalls, data: callId, isPending, error: writeError } = useSendCalls();
+  const { data: callsStatus } = useCallsStatus({
+    id: callId as string,
+    query: { enabled: !!callId },
+  });
+
+  const isConfirming = callsStatus?.status === 'PENDING';
+  const isConfirmed = callsStatus?.status === 'CONFIRMED';
+  
+  // Custom states for the fetching process
+  const [isFetchingProof, setIsFetchingProof] = useState(false);
 
   useEffect(() => {
     if (isConfirmed) {
       setMinted(true);
       refetchBalance();
-      toast.success("Success!", { description: "NFT secured in your wallet." });
+      const txHash = callsStatus?.receipts?.[0]?.transactionHash;
+      
+      toast.success("Transaction Confirmed!", { 
+        description: "NFT secured in your wallet.",
+        action: txHash ? {
+          label: "View BaseScan",
+          onClick: () => window.open(`https://basescan.org/tx/${txHash}`, "_blank")
+        } : undefined
+      });
     }
-  }, [isConfirmed, refetchBalance]);
+  }, [isConfirmed, refetchBalance, callsStatus]);
 
   useEffect(() => {
     if (writeError) {
-      const msg = writeError.message.includes('User rejected') ? 'Transaction rejected.' : 'Simulation failed. Check your Gas/Balance.';
+      const msg = writeError.message.includes('User rejected') 
+        ? 'Transaction rejected by user.' 
+        : writeError.message.includes('Insufficient funds')
+          ? 'Insufficient funds for gas.'
+          : 'Simulation failed. Check your connection or balance.';
       setMintError(msg);
-      toast.error("Error", { description: msg });
+      toast.error("Mint Error", { description: msg });
     }
   }, [writeError]);
 
-  const handleMint = useCallback(() => {
+  const handleMint = useCallback(async () => {
     if (!address) return;
     if (currentChainId !== base.id) {
       switchChain({ chainId: base.id });
+      toast.info("Switching to Base Network");
       return;
     }
 
     setMintError(null);
-    const NATIVE_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' as `0x${string}`;
+    setIsFetchingProof(true);
+    
+    try {
+      // 1. Fetch Dynamic Merkle Proof
+      const res = await fetch('/api/merkle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address })
+      });
+      
+      const proofData = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(proofData.error || 'Failed to fetch proof');
+      }
 
-    // Manually encode function data to append the Builder Code suffix
-    const calldata = encodeFunctionData({
-      abi: ABI,
-      functionName: 'claim',
-      args: [
-        address,
-        TOKEN_ID,
-        1n,
-        NATIVE_TOKEN,
-        0n,
-        {
-          proof: [],
-          quantityLimitPerWallet: 0n, // Set to 0n for public claims
-          pricePerToken: 0n,
-          currency: NATIVE_TOKEN
-        },
-        '0x'
-      ]
-    });
+      const NATIVE_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' as `0x${string}`;
 
-    const dataWithSuffix = appendBuilderSuffix(calldata);
+      // 2. Encode Function Data
+      const calldata = encodeFunctionData({
+        abi: ABI,
+        functionName: 'claim',
+        args: [
+          address,
+          TOKEN_ID,
+          1n, // quantity
+          NATIVE_TOKEN,
+          BigInt(proofData.price),
+          {
+            proof: proofData.proof,
+            quantityLimitPerWallet: BigInt(proofData.quantityLimit),
+            pricePerToken: BigInt(proofData.price),
+            currency: NATIVE_TOKEN
+          },
+          '0x'
+        ]
+      });
 
-    sendTransaction({
-      to: CONTRACT_ADDRESS,
-      data: dataWithSuffix,
-      chainId: base.id,
-    });
-  }, [address, currentChainId, switchChain, sendTransaction]);
+      // 3. Send using capabilities (ERC-8021)
+      sendCalls({
+        calls: [
+          {
+            to: CONTRACT_ADDRESS,
+            data: calldata,
+            value: BigInt(proofData.price) // Send value if price > 0
+          }
+        ],
+        capabilities: {
+          dataSuffix: Attribution.toDataSuffix() // Automatically handles the 8021 format
+        }
+      });
+    } catch (err: any) {
+      console.error("Mint setup error:", err);
+      setMintError(err.message || 'Failed to prepare transaction');
+      toast.error("Preparation Failed", { description: err.message || 'Could not verify mint allowance.' });
+    } finally {
+      setIsFetchingProof(false);
+    }
+  }, [address, currentChainId, switchChain, sendCalls]);
 
   if (!mounted) return null;
 
@@ -212,12 +251,12 @@ export default function OuwiboBaseApp() {
                   </div>
                 ) : (
                   <button 
-                    disabled={isPending || isConfirming || !address} 
+                    disabled={isPending || isConfirming || isFetchingProof || !address} 
                     onClick={handleMint} 
                     className={`w-full py-3.5 rounded-xl text-[10px] font-black uppercase transition-all shadow-xl flex items-center justify-center gap-2 ${currentChainId !== base.id && isConnected ? 'bg-amber-500 text-black' : 'bg-primary text-white active:scale-95 disabled:opacity-50'}`}
                   >
-                    {(isPending || isConfirming) && <Loader2 size={12} className="animate-spin" />}
-                    {isConnected && currentChainId !== base.id ? "SWITCH TO BASE" : (isPending || isConfirming) ? "PROCESSING..." : "INITIALIZE FREE MINT"}
+                    {(isPending || isConfirming || isFetchingProof) && <Loader2 size={12} className="animate-spin" />}
+                    {isConnected && currentChainId !== base.id ? "SWITCH TO BASE" : (isPending || isConfirming || isFetchingProof) ? "PROCESSING..." : "INITIALIZE MINT"}
                   </button>
                 )}
                 {mintError && <p className="text-[8px] text-red-400 uppercase font-black text-center mt-2 italic leading-relaxed">{mintError}</p>}
@@ -257,16 +296,18 @@ export default function OuwiboBaseApp() {
 }
 
 function ProfileView({ address }: any) {
-  const { sendTransaction, isPending } = useSendTransaction();
+  const { sendCalls, isPending } = useSendCalls();
   return (
     <button 
       disabled={isPending}
-      onClick={() => sendTransaction({ 
-        to: CREATOR_WALLET as `0x${string}`, 
-        value: parseEther("0.001"), 
-        chainId: base.id,
-        // ERC-8021 Attribution
-        data: appendBuilderSuffix('0x')
+      onClick={() => sendCalls({ 
+        calls: [{
+          to: CREATOR_WALLET as `0x${string}`, 
+          value: parseEther("0.001")
+        }],
+        capabilities: {
+          dataSuffix: Attribution.toDataSuffix() // Automatically handles the 8021 format
+        }
       })}
       className="w-full bg-secondary/10 border border-secondary/20 p-4 rounded-2xl flex justify-between items-center transition-all hover:bg-secondary/20 group"
     >
