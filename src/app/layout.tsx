@@ -26,6 +26,7 @@ const APP_URL = process.env.NEXT_PUBLIC_VERCEL_URL
 const miniAppConfig = {
   version: "1",
   imageUrl: `${APP_URL}/ouwibo-nft.png`,
+  noindex: false,
   button: {
     title: "Launch Ouwibo",
     action: {
@@ -43,6 +44,10 @@ const stringifiedConfig = JSON.stringify(miniAppConfig);
 export const metadata: Metadata = {
   title: 'OUWIBO CRYPTO Airdrop Portal',
   description: 'Ouwibo Crypto is your premium gateway to the Base network. Mint your Crypto Pass to unlock gasless experiences and $OWB airdrop priority.',
+  robots: {
+    index: true,
+    follow: true,
+  },
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
