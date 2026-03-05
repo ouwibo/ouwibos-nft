@@ -24,7 +24,7 @@ const config = createConfig({
   transports: {
     [base.id]: http(),
   },
-  ssr: true,
+  ssr: false, // Set to false for Farcaster frames
 });
 
 export function Providers({ children }: { children: ReactNode }) {

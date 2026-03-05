@@ -60,10 +60,14 @@ export default function OuwiboBaseApp() {
   const isInitialised = React.useRef(false);
 
   useEffect(() => {
+    setMounted(true);
+
     if (isInitialised.current) return;
+    isInitialised.current = true;
     
     const init = async () => {
       try {
+        console.log("Initialising Farcaster SDK...");
         await sdk.actions.ready();
         
         // Find the farcaster connector from the config
@@ -71,11 +75,11 @@ export default function OuwiboBaseApp() {
         if (farcasterConnector && !isConnected) {
           connect({ connector: farcasterConnector });
         }
-        isInitialised.current = true;
-      } catch (e) { console.error("SDK Error", e); }
+      } catch (e) { 
+        console.error("SDK Initialization Error:", e);
+      }
     };
     init();
-    setMounted(true);
   }, [connectors, connect, isConnected]);
 
   // Read Logic
