@@ -29,6 +29,7 @@ const miniAppConfig = {
   version: "1",
   imageUrl: `${APP_URL}/ouwibo-nft.png`,
   noindex: false,
+  castShareUrl: APP_URL, // URL to share when casting from the Mini App
   button: {
     title: "Launch Ouwibo",
     action: {
