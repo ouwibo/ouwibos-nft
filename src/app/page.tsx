@@ -24,7 +24,7 @@ import sdk from "@farcaster/frame-sdk";
 import { WalletConnector } from '@/components/WalletConnector';
 
 // STABLE CONFIG - NO ENV DEPENDENCY FOR CRITICAL PATH
-const CONTRACT_ADDRESS = "0x075Bb11C9eeEfdd7b5AF5244Df2fb1f08BfA4146" as `0x${string}`;
+const CONTRACT_ADDRESS = "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25" as `0x${string}`;
 const CREATOR_WALLET = "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2";
 const TOKEN_ID = 0n; 
 
@@ -114,7 +114,6 @@ export default function OuwiboBaseApp() {
 
     setMintError(null);
     const NATIVE_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' as `0x${string}`;
-    const MAX_UINT256 = BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935");
 
     // Manually encode function data to append the Builder Code suffix
     const calldata = encodeFunctionData({
@@ -128,7 +127,7 @@ export default function OuwiboBaseApp() {
         0n,
         {
           proof: [],
-          quantityLimitPerWallet: MAX_UINT256,
+          quantityLimitPerWallet: 0n, // Set to 0n for public claims
           pricePerToken: 0n,
           currency: NATIVE_TOKEN
         },
