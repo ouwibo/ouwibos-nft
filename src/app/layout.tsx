@@ -94,6 +94,7 @@ export const metadata: Metadata = {
     images: [`${APP_URL}/ouwibo-nft.png`],
   },
   other: {
+    "base:app_id": "69a11773dce51e894f97278f",
     "fc:frame": "vNext",
     "fc:frame:image": `${APP_URL}/ouwibo-nft.png`,
     "fc:frame:button:1": "Launch Ouwibo",
