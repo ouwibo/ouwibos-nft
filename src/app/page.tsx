@@ -24,7 +24,7 @@ import { WalletConnector } from '@/components/WalletConnector';
 import { Attribution } from '@/lib/erc8021';
 
 // STABLE CONFIG - NO ENV DEPENDENCY FOR CRITICAL PATH
-const CONTRACT_ADDRESS = "0x075Bb11C9eeEfdd7b5AF5244Df2fb1f08BfA4146" as `0x${string}`;
+const CONTRACT_ADDRESS = "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25" as `0x${string}`;
 const CREATOR_WALLET = "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2";
 const TOKEN_ID = 0n; 
 

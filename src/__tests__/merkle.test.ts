@@ -28,6 +28,6 @@ describe('Merkle API', () => {
     expect(res.status).toBe(200);
     expect(json.proof).toEqual([]);
     expect(json.quantityLimit).toBe("1");
-    expect(json.price).toBe("1000000000000000"); // 0.001 ETH
+    expect(json.price).toBe("0"); // Updated expectation for Free Mint
   });
 });

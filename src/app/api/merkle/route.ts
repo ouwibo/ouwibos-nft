@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     const responseData = {
       proof: [], // Empty for public claims or dynamic allowlist
       quantityLimit: "1", // 1n as string
-      price: parseEther("0.001").toString() // Price in wei as string
+      price: "0" // Price in wei as string (Set to 0 for Free Mint)
     };
 
     return NextResponse.json(responseData);
