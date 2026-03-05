@@ -4,12 +4,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base } from 'wagmi/chains';
-import { parseEther, parseAbi } from 'viem';
+import { parseEther, parseAbi, encodeFunctionData, type Hex } from 'viem';
 import { 
   useAccount, 
   useConnect, 
   useReadContract, 
-  useWriteContract, 
   useWaitForTransactionReceipt,
   useSwitchChain,
   useChainId,
@@ -21,14 +20,25 @@ import {
   ChevronRight, Bot, Send, Wallet, Coffee, Heart, Clock
 } from 'lucide-react';
 import { toast } from 'sonner';
-import sdk from "@farcaster/miniapp-sdk";
-import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
+import sdk from "@farcaster/frame-sdk";
 import { WalletConnector } from '@/components/WalletConnector';
 
 // STABLE CONFIG - NO ENV DEPENDENCY FOR CRITICAL PATH
-const CONTRACT_ADDRESS = "0x3525fDbC54DC01121C8e12C3948187E6153Cdf25" as `0x${string}`;
+const CONTRACT_ADDRESS = "0x075Bb11C9eeEfdd7b5AF5244Df2fb1f08BfA4146" as `0x${string}`;
 const CREATOR_WALLET = "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2";
 const TOKEN_ID = 0n; 
+
+/**
+ * ERC-8021 BUILDER CODE INTEGRATION
+ * To get your unique builder code, visit: https://base.dev/settings
+ */
+// User's specific Builder Code
+const BUILDER_CODE_SUFFIX = "0x62635f6463756d766c37610b0080218021802180218021802180218021" as Hex;
+
+const appendBuilderSuffix = (data: Hex): Hex => {
+  if (data === '0x' || !data) return BUILDER_CODE_SUFFIX;
+  return `${data}${BUILDER_CODE_SUFFIX.slice(2)}` as Hex;
+};
 
 // ABI - Standard ERC-1155
 const ABI = parseAbi([
@@ -39,7 +49,7 @@ const ABI = parseAbi([
 
 export default function OuwiboBaseApp() {
   const { address, isConnected } = useAccount();
-  const { connect } = useConnect();
+  const { connect, connectors } = useConnect();
   const currentChainId = useChainId();
   const { switchChain } = useSwitchChain();
   
@@ -52,14 +62,17 @@ export default function OuwiboBaseApp() {
     const init = async () => {
       try {
         await sdk.actions.ready();
-        if (!isConnected) {
-          connect({ connector: farcasterFrame() });
+        
+        // Find the farcaster connector from the config
+        const farcasterConnector = connectors.find(c => c.id === 'farcaster');
+        if (farcasterConnector && !isConnected) {
+          connect({ connector: farcasterConnector });
         }
       } catch (e) { console.error("SDK Error", e); }
     };
     init();
     setMounted(true);
-  }, [connect, isConnected]);
+  }, [connectors, connect, isConnected]);
 
   // Read Logic
   const { data: totalSupply } = useReadContract({
@@ -72,8 +85,8 @@ export default function OuwiboBaseApp() {
 
   const hasMinted = minted || (userBalance !== undefined && (userBalance as bigint) > 0n);
 
-  // Write Logic
-  const { writeContract, data: hash, isPending, error: writeError } = useWriteContract();
+  // Write Logic (Updated to use sendTransaction for Builder Code attribution)
+  const { sendTransaction, data: hash, isPending, error: writeError } = useSendTransaction();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
 
   useEffect(() => {
@@ -103,8 +116,8 @@ export default function OuwiboBaseApp() {
     const NATIVE_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' as `0x${string}`;
     const MAX_UINT256 = BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935");
 
-    writeContract({
-      address: CONTRACT_ADDRESS,
+    // Manually encode function data to append the Builder Code suffix
+    const calldata = encodeFunctionData({
       abi: ABI,
       functionName: 'claim',
       args: [
@@ -120,10 +133,17 @@ export default function OuwiboBaseApp() {
           currency: NATIVE_TOKEN
         },
         '0x'
-      ],
+      ]
+    });
+
+    const dataWithSuffix = appendBuilderSuffix(calldata);
+
+    sendTransaction({
+      to: CONTRACT_ADDRESS,
+      data: dataWithSuffix,
       chainId: base.id,
     });
-  }, [address, currentChainId, switchChain, writeContract]);
+  }, [address, currentChainId, switchChain, sendTransaction]);
 
   if (!mounted) return null;
 
@@ -234,7 +254,13 @@ function ProfileView({ address }: any) {
   return (
     <button 
       disabled={isPending}
-      onClick={() => sendTransaction({ to: CREATOR_WALLET as `0x${string}`, value: parseEther("0.001"), chainId: base.id })}
+      onClick={() => sendTransaction({ 
+        to: CREATOR_WALLET as `0x${string}`, 
+        value: parseEther("0.001"), 
+        chainId: base.id,
+        // ERC-8021 Attribution
+        data: appendBuilderSuffix('0x')
+      })}
       className="w-full bg-secondary/10 border border-secondary/20 p-4 rounded-2xl flex justify-between items-center transition-all hover:bg-secondary/20 group"
     >
       <div className="flex gap-3 items-center">

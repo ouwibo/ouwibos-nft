@@ -5,20 +5,26 @@ import '@rainbow-me/rainbowkit/styles.css';
 import {
   RainbowKitProvider,
   darkTheme,
-  getDefaultConfig,
 } from '@rainbow-me/rainbowkit';
-import { WagmiProvider, http } from 'wagmi';
+import { WagmiProvider, createConfig, http } from 'wagmi';
 import { base } from 'wagmi/chains';
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import { farcasterFrame } from "@farcaster/miniapp-wagmi-connector";
+import { coinbaseWallet } from 'wagmi/connectors';
 
-const config = getDefaultConfig({
-  appName: 'OUWIBO CRYPTO',
-  projectId: 'YOUR_PROJECT_ID', // Recommended: Replace with your actual WalletConnect project ID
+const config = createConfig({
   chains: [base],
-  ssr: true,
+  connectors: [
+    farcasterFrame(),
+    coinbaseWallet({
+      appName: 'OUWIBO CRYPTO',
+      preference: 'smartWalletOnly',
+    }),
+  ],
   transports: {
     [base.id]: http(),
   },
+  ssr: true,
 });
 
 export function Providers({ children }: { children: ReactNode }) {
