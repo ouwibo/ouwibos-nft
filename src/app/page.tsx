@@ -82,14 +82,15 @@ export default function OuwiboBaseApp() {
   const hasMinted = minted || (userBalance !== undefined && (userBalance as bigint) > 0n);
 
   // Write Logic (Updated to use sendCalls for ERC-8021 capabilities)
-  const { sendCalls, data: callId, isPending, error: writeError } = useSendCalls();
+  const { sendCalls, data: callData, isPending, error: writeError } = useSendCalls();
+  const callId = typeof callData === 'string' ? callData : callData?.id;
   const { data: callsStatus } = useCallsStatus({
     id: callId as string,
     query: { enabled: !!callId },
   });
 
-  const isConfirming = callsStatus?.status === 'PENDING';
-  const isConfirmed = callsStatus?.status === 'CONFIRMED';
+  const isConfirming = callsStatus?.status === 'pending';
+  const isConfirmed = callsStatus?.status === 'success';
   
   // Custom states for the fetching process
   const [isFetchingProof, setIsFetchingProof] = useState(false);

@@ -10,7 +10,7 @@ const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 export async function POST(req: NextRequest) {
   try {
     // 1. Extract IP for rate limiting
-    const ip = req.headers.get('x-forwarded-for') || req.ip || 'unknown-ip';
+    const ip = req.headers.get('x-forwarded-for') || 'unknown-ip';
     
     const now = Date.now();
     const userRate = rateLimitStore.get(ip) || { count: 0, resetTime: now + RATE_LIMIT_WINDOW_MS };
