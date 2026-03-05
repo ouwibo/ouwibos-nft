@@ -47,6 +47,17 @@ const stringifiedConfig = JSON.stringify(miniAppConfig);
 export const metadata: Metadata = {
   title: 'OUWIBO CRYPTO Airdrop Portal',
   description: 'Ouwibo Crypto is your premium gateway to the Base network. Mint your Crypto Pass to unlock gasless experiences and $OWB airdrop priority.',
+  icons: {
+    icon: [
+      { url: '/ouwibo-nft.png' },
+      { url: '/ouwibo-nft.png', sizes: '32x32', type: 'image/png' },
+      { url: '/ouwibo-nft.png', sizes: '16x16', type: 'image/png' },
+    ],
+    shortcut: '/ouwibo-nft.png',
+    apple: [
+      { url: '/ouwibo-nft.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
   robots: {
     index: true,
     follow: true,
@@ -68,13 +79,19 @@ export const metadata: Metadata = {
     images: [
       {
         url: `${APP_URL}/ouwibo-nft.png`,
-        width: 1200,
-        height: 800,
-        alt: 'OUWIBO CRYPTO Preview',
+        width: 512,
+        height: 512,
+        alt: 'OUWIBO CRYPTO Logo',
       },
     ],
     locale: 'en_US',
     type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'OUWIBO CRYPTO',
+    description: 'Mint your Crypto Pass on Base.',
+    images: [`${APP_URL}/ouwibo-nft.png`],
   },
   other: {
     "fc:frame": "vNext",

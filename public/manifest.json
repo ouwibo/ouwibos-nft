@@ -9,9 +9,20 @@
   "icons": [
     {
       "src": "/ouwibo-nft.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/ouwibo-nft.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/ouwibo-nft.png",
+      "sizes": "180x180",
+      "type": "image/png"
     }
   ]
 }
