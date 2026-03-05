@@ -21,9 +21,9 @@ export const viewport: Viewport = {
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL 
   ? process.env.NEXT_PUBLIC_APP_URL 
-  : process.env.NEXT_PUBLIC_VERCEL_URL 
-    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` 
-    : "https://ouwibos-nft.vercel.app"; // Fixed: added 's' to match project name
+  : process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "https://ouwibos-nft.vercel.app";
 
 const miniAppConfig = {
   version: "1",
