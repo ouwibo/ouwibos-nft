@@ -19,9 +19,11 @@ export const viewport: Viewport = {
   themeColor: '#020617',
 }
 
-const APP_URL = process.env.NEXT_PUBLIC_VERCEL_URL 
-  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` 
-  : "https://ouwibo-nft.vercel.app";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL 
+  ? process.env.NEXT_PUBLIC_APP_URL 
+  : process.env.NEXT_PUBLIC_VERCEL_URL 
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` 
+    : "https://ouwibos-nft.vercel.app"; // Fixed: added 's' to match project name
 
 const miniAppConfig = {
   version: "1",
@@ -74,13 +76,12 @@ export const metadata: Metadata = {
     type: 'website',
   },
   other: {
-    "talentapp:project_verification": "a02258cfbd696e6d4ce2c4a512ffa2cfd5bfd72fbbe6b34818a714938f0e44ba0002b0eb816aca67e2883d40aae8efede91fed868fb5d4463759a73a73e07319",
-    "base:app_id": "69a11773dce51e894f97278f",
-    "fc:miniapp": stringifiedConfig,
-    "fc:frame": stringifiedConfig,
+    "fc:frame": "vNext",
     "fc:frame:image": `${APP_URL}/ouwibo-nft.png`,
     "fc:frame:button:1": "Launch Ouwibo",
-    "fc:frame:button:1:action": "post_redirect",
+    "fc:frame:button:1:action": "launch_frame",
+    "fc:frame:button:1:target": APP_URL,
+    "fc:miniapp": stringifiedConfig,
   },
 }
 
