@@ -1,0 +1,16 @@
+{
+  "name": "OUWIBO CRYPTO Pass",
+  "description": "Official access pass for the OUWIBO protocol on Base. Mint this NFT to unlock exclusive rewards and airdrop priority.",
+  "image": "https://ouwibo-nft.vercel.app/ouwibo-nft.png",
+  "external_link": "https://ouwibo-nft.vercel.app",
+  "attributes": [
+    {
+      "trait_type": "Access",
+      "value": "Premium"
+    },
+    {
+      "trait_type": "Network",
+      "value": "Base"
+    }
+  ]
+}
