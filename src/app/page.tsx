@@ -170,19 +170,21 @@ export default function OuwiboBaseApp() {
         ]
       });
 
-      // 3. Send using capabilities (ERC-8021)
+      // 3. Manually append Builder Code (Safest method for all wallets)
+      const attributionData = Attribution.toDataSuffix({ codes: ['bc_dcumvl7a'] });
+      const dataWithSuffix = `${calldata}${attributionData.value.slice(2)}` as Hex;
+
+      // 4. Send calls with manually appended data
       sendCalls({
         calls: [
           {
             to: CONTRACT_ADDRESS,
-            data: calldata,
-            value: BigInt(proofData.price) // Send value if price > 0
+            data: dataWithSuffix,
+            value: BigInt(proofData.price) 
           }
-        ],
-        capabilities: {
-          dataSuffix: Attribution.toDataSuffix({ codes: ['bc_dcumvl7a'] })
-        }
+        ]
       });
+
     } catch (err: any) {
       console.error("Mint setup error:", err);
       setMintError(err.message || 'Failed to prepare transaction');
@@ -301,15 +303,16 @@ function ProfileView({ address }: any) {
   return (
     <button 
       disabled={isPending}
-      onClick={() => sendCalls({ 
-        calls: [{
-          to: CREATOR_WALLET as `0x${string}`, 
-          value: parseEther("0.001")
-        }],
-        capabilities: {
-          dataSuffix: Attribution.toDataSuffix({ codes: ['bc_dcumvl7a'] })
-        }
-      })}
+      onClick={() => {
+        const attributionData = Attribution.toDataSuffix({ codes: ['bc_dcumvl7a'] });
+        sendCalls({ 
+          calls: [{
+            to: CREATOR_WALLET as `0x${string}`, 
+            value: parseEther("0.001"),
+            data: attributionData.value as Hex
+          }]
+        });
+      }}
       className="w-full bg-secondary/10 border border-secondary/20 p-4 rounded-2xl flex justify-between items-center transition-all hover:bg-secondary/20 group"
     >
       <div className="flex gap-3 items-center">
